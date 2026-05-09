@@ -14,6 +14,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { TIMEZONE_OPTIONS, useTimezone } from '../contexts/TimezoneContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const ENV = (import.meta.env.VITE_APP_ENV ?? 'local') as string;
 
@@ -27,6 +28,7 @@ const envColor: Record<string, 'default' | 'warning' | 'error' | 'success'> = {
 export default function Layout() {
   const navigate = useNavigate();
   const { timezone, setTimezone } = useTimezone();
+  const { user, logout } = useAuth();
 
   return (
     <Box sx={{ bgcolor: 'white', display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -79,9 +81,9 @@ export default function Layout() {
           <Box sx={{ width: 1, bgcolor: 'white', alignSelf: 'stretch', mx: 1 }} />
 
           <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
-            master
+            {user?.userName ?? ''}
           </Typography>
-          <Button size="small" variant="outlined" color="inherit">
+          <Button size="small" variant="outlined" color="inherit" onClick={() => void logout()}>
             logout
           </Button>
         </Toolbar>

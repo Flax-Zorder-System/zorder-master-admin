@@ -1,24 +1,29 @@
-import {
-  Box,
-  Chip,
-  Divider,
-  Typography,
-} from '@mui/material';
+import { Box, Chip, Divider, Typography } from '@mui/material';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import FlagIcon from '@mui/icons-material/Flag';
-import SupportAgentIcon from '@mui/icons-material/SupportAgent';
-import type { Store } from '../types/store';
+import LoyaltyIcon from '@mui/icons-material/Loyalty';
+import type { StoreAdminDetail } from '../types/api';
+import { formatWithTimezone, useTimezone } from '../contexts/TimezoneContext';
 
 interface Props {
-  store: Store;
+  store: StoreAdminDetail;
 }
 
 function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
       {icon}
-      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.8 }}>
+      <Typography
+        variant="subtitle2"
+        sx={{
+          fontWeight: 700,
+          color: 'text.secondary',
+          textTransform: 'uppercase',
+          fontSize: 11,
+          letterSpacing: 0.8,
+        }}
+      >
         {title}
       </Typography>
     </Box>
@@ -33,8 +38,12 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
       </Typography>
       <Box>
         {typeof value === 'string' || typeof value === 'number' ? (
-          <Typography variant="body2" sx={{ fontWeight: 500 }}>{value}</Typography>
-        ) : value}
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            {value}
+          </Typography>
+        ) : (
+          value
+        )}
       </Box>
     </Box>
   );
@@ -43,7 +52,9 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 function FlagRow({ label, value }: { label: string; value: boolean }) {
   return (
     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.4 }}>
-      <Typography variant="body2" sx={{ color: 'text.secondary' }}>{label}</Typography>
+      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+        {label}
+      </Typography>
       <Chip
         label={value ? 'on' : 'off'}
         size="small"
@@ -56,67 +67,100 @@ function FlagRow({ label, value }: { label: string; value: boolean }) {
 
 function Section({ children }: { children: React.ReactNode }) {
   return (
-    <Box sx={{ bgcolor: 'white', borderRadius: 1, border: '1px solid', borderColor: 'divider', p: 2, mb: 2 }}>
+    <Box
+      sx={{
+        bgcolor: 'white',
+        borderRadius: 1,
+        border: '1px solid',
+        borderColor: 'divider',
+        p: 2,
+        mb: 2,
+      }}
+    >
       {children}
     </Box>
   );
 }
 
 export default function StoreDetail({ store }: Props) {
+  const { timezone } = useTimezone();
+
   return (
     <Box sx={{ p: 2, overflow: 'auto', maxWidth: 800, margin: '0 auto' }}>
       {/* Info */}
       <Section>
         <SectionHeader icon={<StorefrontIcon fontSize="small" color="action" />} title="Info" />
-        <InfoRow label="이름" value={store.name} />
-        <InfoRow label="스토어아이디" value={store.userid} />
-        <InfoRow label="매니저" value={store.manager} />
-        <InfoRow label="type" value={store.type} />
-        <InfoRow label="status" value={
-          <Chip label={store.status} size="small" color={store.status === 'active' ? 'success' : 'default'} sx={{ fontSize: 11, height: 20 }} />
-        } />
-        <InfoRow label="timezone" value={store.timezone} />
-        <InfoRow label="생성일" value={store.createdDate} />
-        <InfoRow label="수정일" value={store.updatedDate} />
-        {store.memo && <InfoRow label="메모" value={store.memo} />}
+        <InfoRow label="store name" value={store.storeName} />
+        <InfoRow label="userid" value={store.userid} />
+        <InfoRow label="manager" value={store.userName} />
+        <InfoRow label="email" value={store.email} />
+        <InfoRow
+          label="status"
+          value={
+            <Chip
+              label={store.isActive ? 'active' : 'inactive'}
+              size="small"
+              color={store.isActive ? 'success' : 'default'}
+              sx={{ fontSize: 11, height: 20 }}
+            />
+          }
+        />
+        <InfoRow label="timezone" value={`${store.timezone} (${store.timezoneOffset})`} />
+        <InfoRow label="start date" value={formatWithTimezone(store.startAt, timezone)} />
+        <InfoRow label="expire date" value={formatWithTimezone(store.expireAt, timezone)} />
+        {store.managerPin && <InfoRow label="manager PIN" value={store.managerPin} />}
       </Section>
 
-      {/* POS Configuration */}
+      {/* POS */}
       <Section>
-        <SectionHeader icon={<PointOfSaleIcon fontSize="small" color="action" />} title="Pos configuration" />
-        <InfoRow label="포스유형" value={store.posConfig.type} />
-        <InfoRow label="GUID" value={
-          <Typography variant="body2"  sx={{ fontFamily: 'monospace', fontWeight: 500, wordBreak: 'break-all' }}>
-            {store.posConfig.guid}
-          </Typography>
-        } />
-        <InfoRow label="status" value={
-          <Chip label={store.posConfig.status} size="small" color={store.posConfig.status === 'active' ? 'success' : 'default'} sx={{ fontSize: 11, height: 20 }} />
-        } />
+        <SectionHeader
+          icon={<PointOfSaleIcon fontSize="small" color="action" />}
+          title="POS"
+        />
+        <InfoRow label="pos" value={store.posName ?? '-'} />
+        <InfoRow label="pos id" value={store.posId ?? '-'} />
       </Section>
 
       {/* Feature Flags */}
       <Section>
         <SectionHeader icon={<FlagIcon fontSize="small" color="action" />} title="Feature Flags" />
-        <FlagRow label="Age Verification" value={store.featureFlags.ageVerification} />
-        <FlagRow label="isAyce" value={store.featureFlags.isAyce} />
-        <FlagRow label="Low Branded Menu" value={store.featureFlags.lowBrandedMenu} />
-        <FlagRow label="Payment" value={store.featureFlags.payment} />
+        <FlagRow label="isAyce" value={store.isAyce} />
+        <FlagRow label="Age Verification" value={store.useAgeVerification} />
+        <FlagRow label="Use Employee" value={store.useEmployee} />
+        <FlagRow label="Branded Menu" value={store.useBrandedMenu} />
+        <FlagRow label="View Mode" value={store.viewMode} />
         <Divider sx={{ my: 1 }}>
-          <Typography variant="caption" color="text.disabled">deprecated</Typography>
+          <Typography variant="caption" color="text.disabled">
+            deprecated
+          </Typography>
         </Divider>
-        <FlagRow label="is Menuboss" value={store.featureFlags.isMenuboss ?? false} />
-        <FlagRow label="Allow Employee" value={store.featureFlags.allowEmployee ?? false} />
-        <FlagRow label="Zurypty" value={store.featureFlags.zurypty ?? false} />
+        <FlagRow label="isMenubook" value={store.isMenubook} />
+        <InfoRow label="printer count" value={store.printerCount} />
       </Section>
 
-      {/* CS Information */}
+      {/* ZLoyalty */}
       <Section>
-        <SectionHeader icon={<SupportAgentIcon fontSize="small" color="action" />} title="CS Information" />
-        <InfoRow label="table count" value={store.csInfo.tableCount} />
-        <InfoRow label="ZUser versions" value={store.csInfo.userAppVersions.join(', ')} />
-        <InfoRow label="ZPos versions" value={store.csInfo.opsAppVersions.join(', ')} />
-        <InfoRow label="ZLauncher versions" value={store.csInfo.launcherAppVersions.join(', ')} />
+        <SectionHeader
+          icon={<LoyaltyIcon fontSize="small" color="action" />}
+          title="ZLoyalty"
+        />
+        <InfoRow label="id" value={store.zloyaltyId ?? '-'} />
+        <InfoRow label="status" value={store.zloyaltyStatus ?? '-'} />
+        <InfoRow
+          label="use display"
+          value={
+            store.zloyaltyUseDisplay !== null ? (
+              <Chip
+                label={store.zloyaltyUseDisplay ? 'on' : 'off'}
+                size="small"
+                color={store.zloyaltyUseDisplay ? 'success' : 'default'}
+                sx={{ fontSize: 11, height: 20 }}
+              />
+            ) : (
+              '-'
+            )
+          }
+        />
       </Section>
     </Box>
   );

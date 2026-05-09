@@ -1,9 +1,12 @@
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
 import StoresPage from './pages/StoresPage';
 import StoreDetailPage from './pages/StoreDetailPage';
+import LoginPage from './pages/LoginPage';
 import { TimezoneProvider } from './contexts/TimezoneContext';
+import { AuthProvider } from './contexts/AuthContext';
 
 const theme = createTheme({
   palette: {
@@ -27,13 +30,22 @@ export default function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <TimezoneProvider>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route index element={<Navigate to="/stores" replace />} />
-          <Route path="/stores" element={<StoresPage />} />
-          <Route path="/stores/:id" element={<StoreDetailPage />} />
-        </Route>
-      </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="/stores" replace />} />
+              <Route path="/stores" element={<StoresPage />} />
+              <Route path="/stores/:id" element={<StoreDetailPage />} />
+            </Route>
+          </Routes>
+        </AuthProvider>
       </TimezoneProvider>
     </ThemeProvider>
   );

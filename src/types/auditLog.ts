@@ -1,21 +1,14 @@
 export interface AuditLog {
-  id: string;
+  id: number;
   action: string;
-  storeId: string;
-  posId: string | null;
-  userId: string | null;
+  storeId: number;
+  posId: number | null;
+  userId: number | null;
   triggeredBy: string;
-  ipAddress: string;
+  ipAddress: string | null;
   status: 'SUCCESS' | 'FAILED' | string;
   message: string | null;
-  durationMs: number;
-  metadata: Record<string, unknown>;
+  durationMs: number | null;
+  metadata: Record<string, unknown> | null;
   createdAt: string; // ISO 8601
-}
-
-export interface AuditLogPage {
-  data: AuditLog[];
-  total: number;
-  page: number;
-  pageSize: number;
 }
