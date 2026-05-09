@@ -19,14 +19,14 @@ import PrintIcon from '@mui/icons-material/Print';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
-export type StoreMenu = 'STORE_INFO' | 'STORE_AUDIT' | 'ORDER_TICKETS' |'ORDER' | 'CHECK' | 'PRINT_JOB';
+export type StoreMenu = 'STORE_INFO' | 'STORE_AUDIT' | 'ORDER_TICKETS' |'ORDER_SESSIONS' | 'CHECK' | 'PRINT_JOB';
 
 export const menuItems: { key: StoreMenu; label: string; icon: React.ReactNode }[] = [
   { key: 'STORE_INFO', label: 'store info', icon: <InfoOutlinedIcon fontSize="small" /> },
   { key: 'ORDER_TICKETS', label: 'Tickets', icon: <LocalOfferIcon fontSize="small" /> },
-  { key: 'ORDER', label: 'Orders', icon: <RoomServiceIcon fontSize="small" /> },
+  { key: 'ORDER_SESSIONS', label: 'Order Sessions', icon: <RoomServiceIcon fontSize="small" /> },
   { key: 'CHECK', label: 'Checks', icon: <ReceiptLongIcon fontSize="small" /> },
-  // { key: 'PRINT_JOB', label: 'Print jobs', icon: <PrintIcon fontSize="small" /> },
+  { key: 'PRINT_JOB', label: 'Print jobs', icon: <PrintIcon fontSize="small" /> },
   { key: 'STORE_AUDIT', label: 'Audit logs', icon: <HistoryIcon fontSize="small" /> },
 ];
 

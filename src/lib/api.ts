@@ -8,6 +8,8 @@ import type {
 import type { AuditLog } from '../types/auditLog';
 import type { CheckDetailResponse, MasterChecksResponse } from '../types/check';
 import type { OrderTicketDetail, OrderTicketsResponse } from '../types/orderTicket';
+import type { PrintJobsResponse } from '../types/printJob';
+import type { OrderSessionDetail, OrderSessionsResponse } from '../types/orderSession';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -138,4 +140,33 @@ export const api = {
 
   getCheckDetail: (checkId: string) =>
     request<CheckDetailResponse>(`/v4/checks/${checkId}`),
+
+  getOrderSessions: (
+    storeId: number,
+    params?: { startDate?: string; endDate?: string; page?: number; pageSize?: number }
+  ) => {
+    const query = new URLSearchParams();
+    if (params?.startDate) query.set('startDate', params.startDate);
+    if (params?.endDate) query.set('endDate', params.endDate);
+    if (params?.page != null) query.set('page', String(params.page));
+    if (params?.pageSize != null) query.set('pageSize', String(params.pageSize));
+    const qs = query.toString();
+    return request<OrderSessionsResponse>(`/v4/master/orders/stores/${storeId}/order-sessions${qs ? `?${qs}` : ''}`);
+  },
+
+  getOrderSessionDetail: (storeId: number, orderSessionId: string) =>
+    request<OrderSessionDetail>(`/v4/master/orders/stores/${storeId}/order-sessions/${orderSessionId}`),
+
+  getPrintJobs: (
+    storeId: number,
+    params?: { startDate?: string; endDate?: string; page?: number; pageSize?: number }
+  ) => {
+    const query = new URLSearchParams();
+    if (params?.startDate) query.set('startDate', params.startDate);
+    if (params?.endDate) query.set('endDate', params.endDate);
+    if (params?.page != null) query.set('page', String(params.page));
+    if (params?.pageSize != null) query.set('pageSize', String(params.pageSize));
+    const qs = query.toString();
+    return request<PrintJobsResponse>(`/v4/master/prints/stores/${storeId}/jobs${qs ? `?${qs}` : ''}`);
+  },
 };

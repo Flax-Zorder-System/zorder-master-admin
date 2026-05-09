@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import StoresPage from './pages/StoresPage';
 import StoreDetailPage from './pages/StoreDetailPage';
 import OrderTicketDetailPage from './pages/OrderTicketDetailPage';
+import OrderSessionDetailPage from './pages/OrderSessionDetailPage';
 import CheckDetailPage from './pages/CheckDetailPage';
 import LoginPage from './pages/LoginPage';
 import { TimezoneProvider } from './contexts/TimezoneContext';
@@ -18,10 +19,11 @@ const theme = createTheme({
     htmlFontSize: 16,
     fontSize: 16,
     fontFamily: [
+      '"Pretendard Variable"',
+      'Pretendard',
       '-apple-system',
       'BlinkMacSystemFont',
       '"Segoe UI"',
-      'Roboto',
       'sans-serif',
     ].join(','),
   },
@@ -46,6 +48,7 @@ export default function App() {
               <Route path="/stores" element={<StoresPage />} />
               <Route path="/stores/:id" element={<StoreDetailPage />} />
               <Route path="/stores/:id/tickets/:ticketId" element={<OrderTicketDetailPage />} />
+              <Route path="/stores/:id/sessions/:sessionId" element={<OrderSessionDetailPage />} />
               <Route path="/checks/:checkId" element={<CheckDetailPage />} />
             </Route>
           </Routes>

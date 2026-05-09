@@ -31,8 +31,8 @@ export default function Layout() {
   const { user, logout } = useAuth();
 
   return (
-    <Box sx={{ bgcolor: 'white', display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <AppBar position="static" color="transparent" elevation={1} sx={{ bgcolor: 'transparent', zIndex: 10 }}>
+    <Box sx={{ bgcolor: 'white', display: 'flex', flexDirection: 'column' }}>
+      <AppBar position="sticky" color="transparent" elevation={1} sx={{ bgcolor: 'white', zIndex: 10, top: 0 }}>
         <Toolbar variant="dense" sx={{ gap: 1 }}>
           <Tooltip title="홈으로">
             <IconButton size="small" onClick={() => navigate('/stores')} sx={{ mr: 0.5 }}>
@@ -52,7 +52,7 @@ export default function Layout() {
             sx={{ fontSize: 10, height: 18, fontWeight: 700 }}
           />
 
-          <Box sx={{ flex: 1, }} />
+          <Box sx={{ flex: 1 }} />
 
           {/* Timezone selector */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -89,7 +89,7 @@ export default function Layout() {
         </Toolbar>
       </AppBar>
 
-      <Box sx={{ flex: 1, overflow: 'hidden', bgcolor: 'background.default' }}>
+      <Box sx={{ bgcolor: 'background.default' }}>
         <Outlet />
       </Box>
     </Box>

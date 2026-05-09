@@ -5,6 +5,8 @@ import StoreDetail from '../components/StoreDetail';
 import AuditLogs from '../components/AuditLogs';
 import OrderTickets from '../components/OrderTickets';
 import Checks from '../components/Checks';
+import OrderSessions from '../components/OrderSessions';
+import PrintJobs from '../components/PrintJobs';
 import StoreDetailNav, { menuItems, type StoreMenu } from '../components/StoreDetailNav';
 import { api } from '../lib/api';
 import type { StoreAdminDetail } from '../types/api';
@@ -62,7 +64,7 @@ export default function StoreDetailPage() {
   }
 
   return (
-    <Box sx={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+    <Box sx={{ display: 'flex', height: 'calc(100vh - 48px)' }}>
       <StoreDetailNav
         store={store}
         navOpen={navOpen}
@@ -75,7 +77,9 @@ export default function StoreDetailPage() {
       <Box sx={{ flex: 1, overflow: 'auto', bgcolor: 'grey.100' }}>
         {activeMenu === 'STORE_INFO' && <StoreDetail store={store} />}
         {activeMenu === 'ORDER_TICKETS' && <OrderTickets storeId={store.storeId} />}
+        {activeMenu === 'ORDER_SESSIONS' && <OrderSessions storeId={store.storeId} />}
         {activeMenu === 'CHECK' && <Checks storeId={store.storeId} />}
+        {activeMenu === 'PRINT_JOB' && <PrintJobs storeId={store.storeId} />}
         {activeMenu === 'STORE_AUDIT' && <AuditLogs storeId={store.storeId} />}
       </Box>
     </Box>

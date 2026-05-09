@@ -192,7 +192,7 @@ export default function OrderTicketDetailPage() {
   }
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3, bgcolor: 'white', mt: 3 }}>
+    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3, bgcolor: 'white', mt: 3 , mb: 3}}>
       {/* Title */}
       <Box sx={{ mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
