@@ -147,7 +147,7 @@ export default function AuditLogs({ storeId }: { storeId: number }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(20);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 

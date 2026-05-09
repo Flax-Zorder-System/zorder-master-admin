@@ -14,12 +14,20 @@ import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import MenuIcon from '@mui/icons-material/Menu';
 import IconButton from '@mui/material/IconButton';
 import type { StoreAdminDetail } from '../types/api';
+import RoomServiceIcon from '@mui/icons-material/RoomService';
+import PrintIcon from '@mui/icons-material/Print';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
-export type StoreMenu = 'store info' | 'audit logs';
+export type StoreMenu = 'store info' | 'audit' | 'order tickets' |'order' | 'check' | 'print jobs';
 
 export const menuItems: { key: StoreMenu; label: string; icon: React.ReactNode }[] = [
   { key: 'store info', label: 'store info', icon: <InfoOutlinedIcon fontSize="small" /> },
-  { key: 'audit logs', label: 'audit logs', icon: <HistoryIcon fontSize="small" /> },
+  { key: 'order tickets', label: 'Tickets', icon: <LocalOfferIcon fontSize="small" /> },
+  { key: 'order', label: 'Orders', icon: <RoomServiceIcon fontSize="small" /> },
+  { key: 'check', label: 'Checks', icon: <ReceiptLongIcon fontSize="small" /> },
+  { key: 'print jobs', label: 'Print jobs', icon: <PrintIcon fontSize="small" /> },
+  { key: 'audit', label: 'Audit logs', icon: <HistoryIcon fontSize="small" /> },
 ];
 
 interface StoreDetailNavProps {
