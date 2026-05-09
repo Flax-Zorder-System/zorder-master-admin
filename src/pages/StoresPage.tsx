@@ -66,9 +66,14 @@ export default function StoresPage() {
   return (
     <Box sx={{ p: 2, height: '100%', overflow: 'auto', maxWidth: 1800, margin: '0 auto' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          Stores
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>Stores</Typography>
+          {!loading && (
+            <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>
+              {q ? `${filtered.length} / ${stores.length}` : stores.length}
+            </Typography>
+          )}
+        </Box>
         <TextField
           size="small"
           placeholder="store name, userid, manager, pos, timezone"
