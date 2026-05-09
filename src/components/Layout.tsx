@@ -80,10 +80,10 @@ export default function Layout() {
 
           <Box sx={{ width: 1, bgcolor: 'white', alignSelf: 'stretch', mx: 1 }} />
 
-          <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
-            {user?.userName ?? ''}
+          <Typography variant="body2" color="text.secondary" sx={{ mr: 1,  fontSize: '0.8rem' }}>
+            {user?.userid ?? ''}
           </Typography>
-          <Button size="small" variant="outlined" color="inherit" onClick={() => void logout()}>
+          <Button size="small" variant="text" color="inherit" onClick={() => void logout()} sx={{minWidth: 'fit-content', fontSize: '0.8rem'}}>
             logout
           </Button>
         </Toolbar>
