@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const ENV = (import.meta.env.VITE_APP_ENV ?? 'local') as string;
 const envColor: Record<string, 'default' | 'warning' | 'error' | 'success'> = {
@@ -19,6 +20,7 @@ const envColor: Record<string, 'default' | 'warning' | 'error' | 'success'> = {
 };
 
 export default function LoginPage() {
+  usePageTitle('Login');
   const { login } = useAuth();
   const [userid, setUserid] = useState('');
   const [password, setPassword] = useState('');

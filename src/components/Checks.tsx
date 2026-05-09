@@ -1,7 +1,5 @@
 import {
   Box,
-  Button,
-  ButtonGroup,
   CircularProgress,
   Paper,
   Table,
@@ -11,14 +9,13 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  TextField,
-  Tooltip,
   Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import type { MasterCheckSummary } from '../types/check';
 import { formatWithTimezone, useTimezone } from '../contexts/TimezoneContext';
+import { DateRangeFilter, toISODate, useDateRangeFilter } from './ui/DateRangeFilter';
 
 // ── 상태 배지 ──────────────────────────────────────────────────
 const STATUS_BG: Record<string, string> = {
@@ -94,50 +91,15 @@ function CheckRow({ check }: { check: MasterCheckSummary }) {
 
 const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
-type QuickRange = 'today' | 'yesterday' | 'this week';
-
-function getToday() {
-  return new Date().toLocaleDateString('sv-SE');
-}
-
-function getRange(range: QuickRange): { start: string; end: string } {
-  const now = new Date();
-  if (range === 'today') {
-    const d = now.toLocaleDateString('sv-SE');
-    return { start: d, end: d };
-  }
-  if (range === 'yesterday') {
-    const y = new Date(now);
-    y.setDate(y.getDate() - 1);
-    const d = y.toLocaleDateString('sv-SE');
-    return { start: d, end: d };
-  }
-  const day = now.getDay();
-  const diffToMon = day === 0 ? -6 : 1 - day;
-  const mon = new Date(now);
-  mon.setDate(now.getDate() + diffToMon);
-  return { start: mon.toLocaleDateString('sv-SE'), end: now.toLocaleDateString('sv-SE') };
-}
-
 export default function Checks({ storeId }: { storeId: number }) {
-  const { timezone } = useTimezone();
   const [checks, setChecks] = useState<MasterCheckSummary[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
-  const [quickRange, setQuickRange] = useState<QuickRange>('today');
-  const [startDate, setStartDate] = useState(getToday);
-  const [endDate, setEndDate] = useState(getToday);
 
-  const applyQuickRange = (range: QuickRange) => {
-    const { start, end } = getRange(range);
-    setQuickRange(range);
-    setStartDate(start);
-    setEndDate(end);
-    setPage(0);
-  };
+  const dateFilter = useDateRangeFilter(() => setPage(0));
 
   useEffect(() => {
     setLoading(true);
@@ -146,8 +108,8 @@ export default function Checks({ storeId }: { storeId: number }) {
       .getChecks(storeId, {
         page: page + 1,
         pageSize: rowsPerPage,
-        startDate: startDate ? `${startDate}T00:00:00.000Z` : undefined,
-        endDate: endDate ? `${endDate}T00:00:00.000Z` : undefined,
+        startDate: dateFilter.startDate ? toISODate(dateFilter.startDate) : undefined,
+        endDate: dateFilter.endDate ? toISODate(dateFilter.endDate) : undefined,
       })
       .then((res) => {
         setChecks(res.checks);
@@ -155,10 +117,7 @@ export default function Checks({ storeId }: { storeId: number }) {
       })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Failed to load checks'))
       .finally(() => setLoading(false));
-  }, [storeId, page, rowsPerPage, startDate, endDate]);
-
-  const handleStartDate = (v: string) => { setQuickRange('today'); setStartDate(v); setPage(0); };
-  const handleEndDate = (v: string) => { setQuickRange('today'); setEndDate(v); setPage(0); };
+  }, [storeId, page, rowsPerPage, dateFilter.startDate, dateFilter.endDate]);
 
   return (
     <Box sx={{ p: 2 }}>
@@ -166,42 +125,14 @@ export default function Checks({ storeId }: { storeId: number }) {
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
         <Typography variant="h6" sx={{ fontWeight: 700 }}>Checks</Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-          <ButtonGroup size="small" variant="outlined">
-            {(['today', 'yesterday', 'this week'] as QuickRange[]).map((r) => (
-              <Button
-                key={r}
-                onClick={() => applyQuickRange(r)}
-                variant={quickRange === r ? 'contained' : 'outlined'}
-                disableElevation
-              >
-                {r}
-              </Button>
-            ))}
-          </ButtonGroup>
-
-          <TextField
-            label="start date"
-            type="date"
-            size="small"
-            value={startDate}
-            onChange={(e) => handleStartDate(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ width: 150 }}
-          />
-          <TextField
-            label="end date"
-            type="date"
-            size="small"
-            value={endDate}
-            onChange={(e) => handleEndDate(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ width: 150 }}
-          />
-          <Tooltip title={`Displaying times in ${timezone}`}>
-            <Typography variant="caption" color="text.secondary">TZ: {timezone}</Typography>
-          </Tooltip>
-        </Box>
+        <DateRangeFilter
+          quickRange={dateFilter.quickRange}
+          startDate={dateFilter.startDate}
+          endDate={dateFilter.endDate}
+          onQuickRange={dateFilter.applyQuickRange}
+          onStartDate={dateFilter.handleStartDate}
+          onEndDate={dateFilter.handleEndDate}
+        />
       </Box>
 
       {loading && (

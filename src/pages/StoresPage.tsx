@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import type { StoreAdminListItem } from '../types/api';
 import { formatWithTimezone, useTimezone } from '../contexts/TimezoneContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const columns = [
   { id: 'id', label: 'no', width: 40 },
@@ -34,6 +35,7 @@ const columns = [
 ] as const;
 
 export default function StoresPage() {
+  usePageTitle('Stores');
   const navigate = useNavigate();
   const { timezone } = useTimezone();
   const [stores, setStores] = useState<StoreAdminListItem[]>([]);

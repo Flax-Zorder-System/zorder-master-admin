@@ -14,6 +14,7 @@ import { useParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import type { CheckDetail, CheckItem, CheckModifier, CheckPayment } from '../types/check';
 import { formatWithTimezone, useTimezone } from '../contexts/TimezoneContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 // ── 상태 배지 ──────────────────────────────────────────────────
 const STATUS_BG: Record<string, string> = {
@@ -84,33 +85,111 @@ function ModifierRows({ modifiers, depth = 0 }: { modifiers: CheckModifier[]; de
   );
 }
 
-// ── Check item ────────────────────────────────────────────────
-function CheckItemCard({ item, timezone }: { item: CheckItem; timezone: string }) {
-  const isDeleted = !!item.deletedAt;
+// ── Check items table ─────────────────────────────────────────
+
+const CELL = { fontSize: 12, borderBottom: 'none', py: 0.75 } as const;
+const HEAD_CELL = { ...CELL, fontWeight: 700, color: 'text.secondary', fontSize: 11, pb: 0.5, bgcolor: 'grey.50' } as const;
+
+function ModifierTableRows({ modifiers, depth = 0 }: { modifiers: CheckModifier[]; depth?: number }) {
+  if (!modifiers.length) return null;
   return (
-    <Box sx={{ py: 1.5, borderBottom: '1px solid', borderColor: 'divider', opacity: isDeleted ? 0.45 : 1 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <Typography sx={{ fontSize: 14, fontWeight: 600, textDecoration: isDeleted ? 'line-through' : 'none' }}>
-          {item.quantity}× {item.itemName}
-        </Typography>
-        <Typography sx={{ fontSize: 14, fontWeight: 600, ml: 2, whiteSpace: 'nowrap' }}>
-          ${item.subtotalAmountDollar}
-        </Typography>
-      </Box>
-      <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
-        unit ${item.itemPriceDollar}
-        {item.taxAmount > 0 && <> · tax ${item.taxAmountDollar}</>}
-        {isDeleted && <Typography component="span" sx={{ ml: 1, fontSize: 11, color: 'error.main' }}>voided</Typography>}
-      </Typography>
-      <Typography sx={{ fontSize: 11, color: item.paidAt ? 'success.dark' : 'text.disabled', mt: 0.25 }}>
-        paidAt: {item.paidAt ? formatWithTimezone(item.paidAt, timezone) : '—'}
-      </Typography>
-      {item.modifiers?.length > 0 && (
-        <Box sx={{ mt: 0.5 }}>
-          <ModifierRows modifiers={item.modifiers} />
-        </Box>
-      )}
-    </Box>
+    <>
+      {modifiers.map((m) => (
+        <TableRow key={m.id} sx={{ opacity: 0.75 }}>
+          <TableCell sx={{ ...CELL, pl: 2 + depth * 2 }}>
+            <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>
+              {'└ '}{m.quantity > 1 ? `${m.quantity}× ` : ''}{m.modifierName}
+              {m.modifierGroupName && (
+                <Typography component="span" sx={{ fontSize: 10, color: 'text.disabled', ml: 0.5 }}>
+                  ({m.modifierGroupName})
+                </Typography>
+              )}
+            </Typography>
+          </TableCell>
+          <TableCell sx={{ ...CELL, textAlign: 'right' }}>
+            {m.modifierPrice !== 0 ? (
+              <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>${m.modifierPriceDollar}</Typography>
+            ) : null}
+          </TableCell>
+          <TableCell sx={CELL} />
+          <TableCell sx={{ ...CELL, textAlign: 'right' }}>
+            {m.lineSubtotalAmount !== 0 && (
+              <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>${m.lineSubtotalAmountDollar}</Typography>
+            )}
+          </TableCell>
+          <TableCell sx={CELL} />
+          <TableCell sx={CELL} />
+          <TableCell sx={CELL} />
+        </TableRow>
+      ))}
+    </>
+  );
+}
+
+function CheckItemsTable({ items, timezone }: { items: CheckItem[]; timezone: string }) {
+  return (
+    <Table size="small" sx={{ tableLayout: 'fixed' }}>
+      <TableHead>
+        <TableRow>
+          <TableCell sx={{ ...HEAD_CELL, width: '35%' }}>item</TableCell>
+          <TableCell sx={{ ...HEAD_CELL, textAlign: 'right', width: 70 }}>unit</TableCell>
+          <TableCell sx={{ ...HEAD_CELL, textAlign: 'center', width: 40 }}>qty</TableCell>
+          <TableCell sx={{ ...HEAD_CELL, textAlign: 'right', width: 90 }}>subtotal</TableCell>
+          <TableCell sx={{ ...HEAD_CELL, textAlign: 'right', width: 70 }}>tax</TableCell>
+          <TableCell sx={{ ...HEAD_CELL, textAlign: 'right', width: 90 }}>total</TableCell>
+          <TableCell sx={{ ...HEAD_CELL, width: 150 }}>paidAt</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {items.map((item) => {
+          const isDeleted = !!item.deletedAt;
+          return (
+            <>
+              <TableRow
+                key={item.id}
+                sx={{ opacity: isDeleted ? 0.45 : 1, '&:hover': { bgcolor: 'grey.50' } }}
+              >
+                <TableCell sx={CELL}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                    <Typography
+                      sx={{ fontSize: 12, fontWeight: 600, textDecoration: isDeleted ? 'line-through' : 'none' }}
+                    >
+                      {item.itemName}
+                    </Typography>
+                    {isDeleted && (
+                      <Typography variant="caption" sx={{ fontSize: 10, px: 0.6, py: 0.1, borderRadius: 0.5, bgcolor: '#ffebee', color: '#c62828', fontWeight: 600 }}>
+                        voided
+                      </Typography>
+                    )}
+                  </Box>
+                </TableCell>
+                <TableCell sx={{ ...CELL, textAlign: 'right', color: 'text.secondary' }}>
+                  ${item.itemPriceDollar}
+                </TableCell>
+                <TableCell sx={{ ...CELL, textAlign: 'center', color: 'text.secondary' }}>
+                  {item.quantity}
+                </TableCell>
+                <TableCell sx={{ ...CELL, textAlign: 'right' }}>
+                  ${item.lineSubtotalAmountDollar}
+                </TableCell>
+                <TableCell sx={{ ...CELL, textAlign: 'right', color: item.taxAmount > 0 ? 'warning.dark' : 'text.disabled' }}>
+                  {item.taxAmount > 0 ? `$${item.taxAmountDollar}` : '—'}
+                </TableCell>
+                <TableCell sx={{ ...CELL, textAlign: 'right', fontWeight: 600 }}>
+                  ${item.subtotalAmountDollar}
+                </TableCell>
+                <TableCell sx={{ ...CELL, color: item.paidAt ? 'success.dark' : 'text.disabled', fontSize: 11, whiteSpace: 'nowrap' }}>
+                  {item.paidAt ? formatWithTimezone(item.paidAt, timezone) : '—'}
+                </TableCell>
+              </TableRow>
+              {item.modifiers?.length > 0 && (
+                <ModifierTableRows modifiers={item.modifiers} />
+              )}
+            </>
+          );
+        })}
+      </TableBody>
+    </Table>
   );
 }
 
@@ -182,6 +261,7 @@ export default function CheckDetailPage() {
   const { checkId } = useParams<{ checkId: string }>();
   const { timezone } = useTimezone();
   const [check, setCheck] = useState<CheckDetail | null>(null);
+  usePageTitle(check ? `Check #${check.id}${check.table ? ` · ${check.table.tableName}` : ''}` : null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -212,19 +292,11 @@ export default function CheckDetailPage() {
   }
 
   return (
-    <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
+    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3, bgcolor: 'white', mt: 3 }}>
       {/* Title */}
       <Box sx={{ mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
           <Typography sx={{ fontWeight: 700, fontSize: 20 }}>Check</Typography>
-          <Typography sx={{ fontSize: 13, color: 'text.secondary', fontFamily: 'monospace' }}>
-            #{check.id}
-          </Typography>
-          {check.parentId && (
-            <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
-              (split from #{check.parentId})
-            </Typography>
-          )}
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
           <Badge
@@ -267,6 +339,7 @@ export default function CheckDetailPage() {
         {/* Left: basic info */}
         <Box>
           <SectionTitle>Info</SectionTitle>
+          <InfoRow label="Check ID" value={<Typography component="span" sx={{ fontSize: 13, fontFamily: 'monospace' }}>#{check.id}</Typography>} />
           {check.table && (
             <InfoRow
               label="Table"
@@ -329,7 +402,7 @@ export default function CheckDetailPage() {
       {check.checkItems.length === 0 ? (
         <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>No items.</Typography>
       ) : (
-        check.checkItems.map((item) => <CheckItemCard key={item.id} item={item} timezone={timezone} />)
+        <CheckItemsTable items={check.checkItems} timezone={timezone} />
       )}
 
       {/* Payments */}

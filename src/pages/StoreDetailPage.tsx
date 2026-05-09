@@ -8,8 +8,12 @@ import Checks from '../components/Checks';
 import StoreDetailNav, { menuItems, type StoreMenu } from '../components/StoreDetailNav';
 import { api } from '../lib/api';
 import type { StoreAdminDetail } from '../types/api';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const VALID_TABS = menuItems.map((m) => m.key);
+const TAB_LABEL: Record<StoreMenu, string> = Object.fromEntries(
+  menuItems.map((m) => [m.key, m.label])
+) as Record<StoreMenu, string>;
 
 function parseTab(raw: string | null): StoreMenu {
   return VALID_TABS.includes(raw as StoreMenu) ? (raw as StoreMenu) : 'STORE_INFO';
@@ -27,6 +31,8 @@ export default function StoreDetailPage() {
   const [store, setStore] = useState<StoreAdminDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  usePageTitle(store ? `${store.storeName} · ${TAB_LABEL[activeMenu]}` : null);
 
   useEffect(() => {
     if (!id) return;
