@@ -42,7 +42,9 @@ npm run preview      # 빌드 결과 미리보기
 
 - `/login` — 마스터 계정 로그인
 - `/stores` — 매장 목록 (MUI Table, 행 클릭 → 상세 라우팅)
-- `/stores/:id` — 매장 상세 (사이드 nav + store info + audit logs)
+- `/stores/:id` — 매장 상세 (사이드 nav + tabs). `?tab=` query param으로 탭 상태 유지 (`store info` | `order tickets` | `check` | `audit`)
+- `/stores/:id/tickets/:ticketId` — Order Ticket 상세 (새 탭으로 열림)
+- `/checks/:checkId` — Check 상세 (새 탭으로 열림)
 
 ## Architecture
 
@@ -68,6 +70,8 @@ React Router DOM v7. `Layout`이 `<Outlet />`을 감싸는 구조:
   <Route index → /stores />
   <Route path="/stores" />
   <Route path="/stores/:id" />
+  <Route path="/stores/:id/tickets/:ticketId" />  {/* 새 탭 detail */}
+  <Route path="/checks/:checkId" />               {/* 새 탭 detail */}
 </Route>
 ```
 
@@ -75,6 +79,37 @@ React Router DOM v7. `Layout`이 `<Outlet />`을 감싸는 구조:
 
 - `TimezoneContext` — AppBar의 TZ selector로 전역 timezone 변경. 날짜 표시가 필요한 모든 컴포넌트에서 `useTimezone()` 훅으로 접근. 날짜 포맷은 `formatWithTimezone(isoString, timezone)` 유틸 함수 사용 (`Intl.DateTimeFormat('sv-SE')` 기반 — `YYYY-MM-DD HH:mm:ss` 형식 자동 생성).
 - `useFormatDate()` hook (예정) — `useTimezone` + `formatWithTimezone`를 캡슐화. 날짜를 표시하는 곳은 이 훅을 사용한다.
+
+### URL 탭 상태 유지
+
+`/stores/:id`의 탭 전환은 `useSearchParams`로 `?tab=` query param에 반영한다. 탭 key가 유효하지 않으면 `'store info'`로 fallback. `replace: true`로 히스토리 스택에 쌓지 않는다.
+
+```tsx
+const [searchParams, setSearchParams] = useSearchParams();
+const activeMenu = parseTab(searchParams.get('tab'));
+const setActiveMenu = (menu: StoreMenu) =>
+  setSearchParams({ tab: menu }, { replace: true });
+```
+
+### 새 탭 Detail 페이지 패턴
+
+리스트 행 클릭 시 상세 페이지를 **새 탭**으로 여는 패턴. `window.open`을 사용한다.
+
+```tsx
+onClick={() => window.open(`/checks/${check.id}`, '_blank')}
+```
+
+상세 페이지는 `Layout` 안의 `ProtectedRoute`에 속하므로 인증이 그대로 작동한다. 단, 새 탭은 `sessionStorage`를 공유하지 않으므로 반드시 **`localStorage`**에 인증 정보를 저장해야 한다.
+
+### 인증 저장소 — localStorage 사용
+
+`auth_user`는 반드시 `localStorage`에 저장한다. `sessionStorage`는 탭 간 공유되지 않아 새 탭에서 인증이 풀린다. API 쿠키(`credentials: 'include'`)는 브라우저가 origin 단위로 관리하므로 탭 간 자동 공유된다.
+
+```ts
+// ❌ sessionStorage — 새 탭에서 auth 풀림
+// ✅ localStorage — 탭 간 공유됨
+localStorage.setItem('auth_user', JSON.stringify(authUser));
+```
 
 ## MUI 사용 규칙 (v9 / MUI v6 API)
 
@@ -142,6 +177,32 @@ ESLint가 shorthand Typography prop을 자동 수정한다. `sx`로만 스타일
 const ENV = (import.meta.env.VITE_APP_ENV ?? 'local') as string;
 // color 매핑: local=default, dev=success, stage=warning, prod=error
 ```
+
+### 7. 날짜 필터 컴포넌트 패턴
+
+날짜 범위 필터가 있는 리스트 컴포넌트(`OrderTickets`, `Checks` 등)는 공통 패턴을 따른다.
+
+- `ButtonGroup`으로 quick range 버튼 (`today` / `yesterday` / `this week`) 제공
+- `TextField type="date"` 두 개로 start/end 직접 입력 허용
+- date input 직접 수정 시 quick range 선택 해제 (active 표시 제거)
+- 날짜 변경 시 `page`를 반드시 `0`으로 리셋
+- API에는 `YYYY-MM-DDT00:00:00.000Z` 형식으로 전달
+- `TextField`에 `slotProps={{ inputLabel: { shrink: true } }}` 적용 (label 겹침 방지)
+
+### 8. 테이블 내 상태 배지 — Typography caption 사용
+
+목록 테이블의 상태 배지(paymentStatus, prepStatus, check status 등)는 MUI `Chip`이 아닌 `Typography variant="caption"`에 `bgcolor`/`color` sx로 구현한다. Chip의 기본 padding/height가 밀도 높은 table에 맞지 않기 때문이다.
+
+```tsx
+<Typography
+  variant="caption"
+  sx={{ px: 0.75, py: 0.2, borderRadius: 0.5, bgcolor: bg, color, fontWeight: 600 }}
+>
+  {label}
+</Typography>
+```
+
+규칙 5와 함께 참고: 환경/글로벌 status 배지 → `Chip`, 테이블 행 내 상태 배지 → `Typography caption`.
 
 ## Node.js / Vite 버전 요구사항
 

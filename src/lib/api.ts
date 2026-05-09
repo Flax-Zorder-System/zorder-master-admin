@@ -1,5 +1,13 @@
-import type { StoreAdminDetail, StoreAdminListItem } from '../types/api';
+import type {
+  PosStoreIntegration,
+  StoreAdminDetail,
+  StoreAdminListItem,
+  StoreCustomizeTerms,
+  StorePaymentConfig,
+} from '../types/api';
 import type { AuditLog } from '../types/auditLog';
+import type { CheckDetailResponse, MasterChecksResponse } from '../types/check';
+import type { OrderTicketDetail, OrderTicketsResponse } from '../types/orderTicket';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -22,7 +30,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   });
 
   if (res.status === 401) {
-    sessionStorage.removeItem('auth_user');
+    localStorage.removeItem('auth_user');
     window.location.href = '/login';
     throw new Error('Unauthorized');
   }
@@ -34,6 +42,30 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
 
   return body.data;
+}
+
+/** ZOrderResponse 래퍼 없이 raw JSON을 그대로 반환 (POS 컨트롤러 등) */
+async function requestRaw<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    ...options,
+  });
+
+  if (res.status === 401) {
+    localStorage.removeItem('auth_user');
+    window.location.href = '/login';
+    throw new Error('Unauthorized');
+  }
+
+  const body = (await res.json()) as T;
+
+  if (!res.ok) {
+    const msg = (body as { message?: string }).message;
+    throw new Error(msg ?? `${res.status} ${res.statusText}`);
+  }
+
+  return body;
 }
 
 export interface MasterLoginResponse {
@@ -65,4 +97,45 @@ export const api = {
     const qs = query.toString();
     return request<AuditLog[]>(`/v4/settings/stores/${storeId}/audit-logs${qs ? `?${qs}` : ''}`);
   },
+
+  getCustomizeDesignTerms: (storeId: number) =>
+    request<StoreCustomizeTerms>(`/v4/settings/stores/${storeId}/customize-design/terms`),
+
+  getPosStoreIntegration: (storeId: number) =>
+    requestRaw<PosStoreIntegration>(`/pos/store-integrations/${storeId}`),
+
+  getStorePaymentConfig: (storeId: number) =>
+    request<StorePaymentConfig>(`/v4/settings/stores/${storeId}/payment-config`),
+
+  getOrderTickets: (
+    storeId: number,
+    params?: { startDate?: string; endDate?: string; page?: number; pageSize?: number }
+  ) => {
+    const query = new URLSearchParams();
+    if (params?.startDate) query.set('startDate', params.startDate);
+    if (params?.endDate) query.set('endDate', params.endDate);
+    if (params?.page != null) query.set('page', String(params.page));
+    if (params?.pageSize != null) query.set('pageSize', String(params.pageSize));
+    const qs = query.toString();
+    return request<OrderTicketsResponse>(`/v4/master/orders/stores/${storeId}/tickets${qs ? `?${qs}` : ''}`);
+  },
+
+  getOrderTicketDetail: (storeId: number, orderTicketId: string) =>
+    request<OrderTicketDetail>(`/v4/master/orders/stores/${storeId}/tickets/${orderTicketId}`),
+
+  getChecks: (
+    storeId: number,
+    params?: { startDate?: string; endDate?: string; page?: number; pageSize?: number }
+  ) => {
+    const query = new URLSearchParams();
+    if (params?.startDate) query.set('startDate', params.startDate);
+    if (params?.endDate) query.set('endDate', params.endDate);
+    if (params?.page != null) query.set('page', String(params.page));
+    if (params?.pageSize != null) query.set('pageSize', String(params.pageSize));
+    const qs = query.toString();
+    return request<MasterChecksResponse>(`/v4/master/checks/stores/${storeId}/checks${qs ? `?${qs}` : ''}`);
+  },
+
+  getCheckDetail: (checkId: string) =>
+    request<CheckDetailResponse>(`/v4/checks/${checkId}`),
 };

@@ -4,6 +4,8 @@ import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import StoresPage from './pages/StoresPage';
 import StoreDetailPage from './pages/StoreDetailPage';
+import OrderTicketDetailPage from './pages/OrderTicketDetailPage';
+import CheckDetailPage from './pages/CheckDetailPage';
 import LoginPage from './pages/LoginPage';
 import { TimezoneProvider } from './contexts/TimezoneContext';
 import { AuthProvider } from './contexts/AuthContext';
@@ -43,6 +45,8 @@ export default function App() {
               <Route index element={<Navigate to="/stores" replace />} />
               <Route path="/stores" element={<StoresPage />} />
               <Route path="/stores/:id" element={<StoreDetailPage />} />
+              <Route path="/stores/:id/tickets/:ticketId" element={<OrderTicketDetailPage />} />
+              <Route path="/checks/:checkId" element={<CheckDetailPage />} />
             </Route>
           </Routes>
         </AuthProvider>

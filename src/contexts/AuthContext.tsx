@@ -20,7 +20,7 @@ const SESSION_KEY = 'auth_user';
 
 function loadUser(): AuthUser | null {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
+    const raw = localStorage.getItem(SESSION_KEY);
     return raw ? (JSON.parse(raw) as AuthUser) : null;
   } catch {
     return null;
@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function login(userid: string, password: string) {
     const data = await api.login(userid, password);
     const authUser: AuthUser = { id: data.id, userid: data.userid, userName: data.userName };
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(authUser));
+    localStorage.setItem(SESSION_KEY, JSON.stringify(authUser));
     setUser(authUser);
     navigate('/stores');
   }
@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // 서버 로그아웃 실패해도 로컬 세션은 반드시 정리
     }
-    sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(SESSION_KEY);
     setUser(null);
     navigate('/login');
   }

@@ -1,16 +1,29 @@
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import StoreDetail from '../components/StoreDetail';
 import AuditLogs from '../components/AuditLogs';
-import StoreDetailNav, { type StoreMenu } from '../components/StoreDetailNav';
+import OrderTickets from '../components/OrderTickets';
+import Checks from '../components/Checks';
+import StoreDetailNav, { menuItems, type StoreMenu } from '../components/StoreDetailNav';
 import { api } from '../lib/api';
 import type { StoreAdminDetail } from '../types/api';
 
+const VALID_TABS = menuItems.map((m) => m.key);
+
+function parseTab(raw: string | null): StoreMenu {
+  return VALID_TABS.includes(raw as StoreMenu) ? (raw as StoreMenu) : 'store info';
+}
+
 export default function StoreDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [activeMenu, setActiveMenu] = useState<StoreMenu>('store info');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeMenu = parseTab(searchParams.get('tab'));
   const [navOpen, setNavOpen] = useState(true);
+
+  const setActiveMenu = (menu: StoreMenu) => {
+    setSearchParams({ tab: menu }, { replace: true });
+  };
   const [store, setStore] = useState<StoreAdminDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +68,9 @@ export default function StoreDetailPage() {
       {/* Main Content */}
       <Box sx={{ flex: 1, overflow: 'auto', bgcolor: 'grey.100' }}>
         {activeMenu === 'store info' && <StoreDetail store={store} />}
-        {activeMenu === 'audit logs' && <AuditLogs storeId={store.storeId} />}
+        {activeMenu === 'order tickets' && <OrderTickets storeId={store.storeId} />}
+        {activeMenu === 'check' && <Checks storeId={store.storeId} />}
+        {activeMenu === 'audit' && <AuditLogs storeId={store.storeId} />}
       </Box>
     </Box>
   );
