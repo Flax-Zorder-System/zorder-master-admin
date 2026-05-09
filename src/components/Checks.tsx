@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import type { MasterCheckSummary } from '../types/check';
 import { formatWithTimezone, useTimezone } from '../contexts/TimezoneContext';
-import { DateRangeFilter, toISODate, useDateRangeFilter } from './ui/DateRangeFilter';
+import { DateRangeFilter, useDateRangeFilter } from './ui/DateRangeFilter';
 
 // ── 상태 배지 ──────────────────────────────────────────────────
 const STATUS_BG: Record<string, string> = {
@@ -108,8 +108,8 @@ export default function Checks({ storeId }: { storeId: number }) {
       .getChecks(storeId, {
         page: page + 1,
         pageSize: rowsPerPage,
-        startDate: dateFilter.startDate ? toISODate(dateFilter.startDate) : undefined,
-        endDate: dateFilter.endDate ? toISODate(dateFilter.endDate) : undefined,
+        startDate: dateFilter.startDate ? dateFilter.startISO : undefined,
+        endDate: dateFilter.endDate ? dateFilter.endISO : undefined,
       })
       .then((res) => {
         setChecks(res.checks);

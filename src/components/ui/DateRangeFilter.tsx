@@ -6,33 +6,55 @@ import { useTimezone } from '../../contexts/TimezoneContext';
 
 export type QuickRange = 'today' | 'yesterday' | 'this week';
 
-function getToday() {
-  return new Date().toLocaleDateString('sv-SE');
+/**
+ * YYYY-MM-DD + time 문자열을 특정 timezone 기준으로 해석해 UTC Date로 변환한다.
+ * 예) '2026-05-10', '00:00:00.000', 'Asia/Seoul' → 2026-05-09T15:00:00.000Z
+ */
+function tzToUTC(dateStr: string, time: string, tz: string): Date {
+  const nominal = new Date(`${dateStr}T${time}Z`);
+  const localStr = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: tz,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).format(nominal).replace(' ', 'T') + 'Z';
+  const offsetMs = nominal.getTime() - new Date(localStr).getTime();
+  return new Date(nominal.getTime() + offsetMs);
 }
 
-function getRange(range: QuickRange): { start: string; end: string } {
-  const now = new Date();
-  if (range === 'today') {
-    const d = now.toLocaleDateString('sv-SE');
-    return { start: d, end: d };
-  }
+/** 주어진 timezone에서 오늘 날짜를 YYYY-MM-DD로 반환 */
+function getTodayInTz(tz: string): string {
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: tz }).format(new Date());
+}
+
+/** 주어진 timezone 기준으로 quick range의 start/end 날짜(YYYY-MM-DD)를 반환 */
+function getRange(range: QuickRange, tz: string): { start: string; end: string } {
+  const today = getTodayInTz(tz);
+  if (range === 'today') return { start: today, end: today };
+
   if (range === 'yesterday') {
-    const y = new Date(now);
-    y.setDate(y.getDate() - 1);
-    const d = y.toLocaleDateString('sv-SE');
-    return { start: d, end: d };
+    const d = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const yest = new Intl.DateTimeFormat('sv-SE', { timeZone: tz }).format(d);
+    return { start: yest, end: yest };
   }
-  // this week: Mon–today
-  const day = now.getDay();
+
+  // this week: Mon–today (timezone 기준)
+  const dayShort = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' }).format(new Date());
+  const dayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  const day = dayMap[dayShort] ?? 1;
   const diffToMon = day === 0 ? -6 : 1 - day;
-  const mon = new Date(now);
-  mon.setDate(now.getDate() + diffToMon);
-  return { start: mon.toLocaleDateString('sv-SE'), end: now.toLocaleDateString('sv-SE') };
+  const mon = new Date(Date.now() + diffToMon * 24 * 60 * 60 * 1000);
+  const monStr = new Intl.DateTimeFormat('sv-SE', { timeZone: tz }).format(mon);
+  return { start: monStr, end: today };
 }
 
-/** API에 넘길 ISO 문자열로 변환 */
-export function toISODate(date: string): string {
-  return `${date}T00:00:00.000Z`;
+/** startDate용: 해당 TZ 자정 → UTC ISO */
+export function toISODate(dateStr: string, tz: string): string {
+  return tzToUTC(dateStr, '00:00:00.000', tz).toISOString();
+}
+
+/** endDate용: 해당 TZ 자정 직전 → UTC ISO */
+export function toISODateEnd(dateStr: string, tz: string): string {
+  return tzToUTC(dateStr, '23:59:59.999', tz).toISOString();
 }
 
 // ── 훅 ───────────────────────────────────────────────────────
@@ -40,6 +62,8 @@ export function toISODate(date: string): string {
 export interface DateRangeState {
   startDate: string;
   endDate: string;
+  startISO: string;
+  endISO: string;
   quickRange: QuickRange;
   applyQuickRange: (range: QuickRange) => void;
   handleStartDate: (v: string) => void;
@@ -47,12 +71,13 @@ export interface DateRangeState {
 }
 
 export function useDateRangeFilter(onReset: () => void): DateRangeState {
+  const { timezone } = useTimezone();
   const [quickRange, setQuickRange] = useState<QuickRange>('today');
-  const [startDate, setStartDate] = useState(getToday);
-  const [endDate, setEndDate] = useState(getToday);
+  const [startDate, setStartDate] = useState(() => getTodayInTz(timezone));
+  const [endDate, setEndDate] = useState(() => getTodayInTz(timezone));
 
   const applyQuickRange = (range: QuickRange) => {
-    const { start, end } = getRange(range);
+    const { start, end } = getRange(range, timezone);
     setQuickRange(range);
     setStartDate(start);
     setEndDate(end);
@@ -71,7 +96,10 @@ export function useDateRangeFilter(onReset: () => void): DateRangeState {
     onReset();
   };
 
-  return { startDate, endDate, quickRange, applyQuickRange, handleStartDate, handleEndDate };
+  const startISO = startDate ? toISODate(startDate, timezone) : '';
+  const endISO = endDate ? toISODateEnd(endDate, timezone) : '';
+
+  return { startDate, endDate, startISO, endISO, quickRange, applyQuickRange, handleStartDate, handleEndDate };
 }
 
 // ── UI 컴포넌트 ───────────────────────────────────────────────

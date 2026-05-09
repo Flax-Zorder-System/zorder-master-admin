@@ -16,7 +16,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import type { OrderSessionSummary } from '../types/orderSession';
 import { formatWithTimezone, useTimezone } from '../contexts/TimezoneContext';
-import { DateRangeFilter, toISODate, useDateRangeFilter } from './ui/DateRangeFilter';
+import { DateRangeFilter, useDateRangeFilter } from './ui/DateRangeFilter';
 
 // ── 상태 배지 ──────────────────────────────────────────────────
 
@@ -158,8 +158,8 @@ export default function OrderSessions({ storeId }: { storeId: number }) {
       .getOrderSessions(storeId, {
         page: page + 1,
         pageSize: rowsPerPage,
-        startDate: dateFilter.startDate ? toISODate(dateFilter.startDate) : undefined,
-        endDate: dateFilter.endDate ? toISODate(dateFilter.endDate) : undefined,
+        startDate: dateFilter.startDate ? dateFilter.startISO : undefined,
+        endDate: dateFilter.endDate ? dateFilter.endISO : undefined,
       })
       .then((res) => {
         setSessions(res.orderSessions);

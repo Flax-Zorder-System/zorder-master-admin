@@ -16,7 +16,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import type { OrderTicket } from '../types/orderTicket';
 import { formatWithTimezone, useTimezone } from '../contexts/TimezoneContext';
-import { DateRangeFilter, toISODate, useDateRangeFilter } from './ui/DateRangeFilter';
+import { DateRangeFilter, useDateRangeFilter } from './ui/DateRangeFilter';
 
 // ── 상태 배지 ──────────────────────────────────────────
 
@@ -148,8 +148,8 @@ export default function OrderTickets({ storeId }: { storeId: number }) {
       .getOrderTickets(storeId, {
         page: page + 1,
         pageSize: rowsPerPage,
-        startDate: dateFilter.startDate ? toISODate(dateFilter.startDate) : undefined,
-        endDate: dateFilter.endDate ? toISODate(dateFilter.endDate) : undefined,
+        startDate: dateFilter.startDate ? dateFilter.startISO : undefined,
+        endDate: dateFilter.endDate ? dateFilter.endISO : undefined,
       })
       .then((res) => {
         setTickets(res.orderTickets);
