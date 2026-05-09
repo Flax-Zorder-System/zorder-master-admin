@@ -12,7 +12,7 @@ import type { StoreAdminDetail } from '../types/api';
 const VALID_TABS = menuItems.map((m) => m.key);
 
 function parseTab(raw: string | null): StoreMenu {
-  return VALID_TABS.includes(raw as StoreMenu) ? (raw as StoreMenu) : 'store info';
+  return VALID_TABS.includes(raw as StoreMenu) ? (raw as StoreMenu) : 'STORE_INFO';
 }
 
 export default function StoreDetailPage() {
@@ -67,10 +67,10 @@ export default function StoreDetailPage() {
 
       {/* Main Content */}
       <Box sx={{ flex: 1, overflow: 'auto', bgcolor: 'grey.100' }}>
-        {activeMenu === 'store info' && <StoreDetail store={store} />}
-        {activeMenu === 'order tickets' && <OrderTickets storeId={store.storeId} />}
-        {activeMenu === 'check' && <Checks storeId={store.storeId} />}
-        {activeMenu === 'audit' && <AuditLogs storeId={store.storeId} />}
+        {activeMenu === 'STORE_INFO' && <StoreDetail store={store} />}
+        {activeMenu === 'ORDER_TICKETS' && <OrderTickets storeId={store.storeId} />}
+        {activeMenu === 'CHECK' && <Checks storeId={store.storeId} />}
+        {activeMenu === 'STORE_AUDIT' && <AuditLogs storeId={store.storeId} />}
       </Box>
     </Box>
   );
