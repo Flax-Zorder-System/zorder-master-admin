@@ -58,34 +58,6 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ── Modifier 재귀 렌더 ────────────────────────────────────────
-function ModifierRows({ modifiers, depth = 0 }: { modifiers: CheckModifier[]; depth?: number }) {
-  if (!modifiers.length) return null;
-  return (
-    <>
-      {modifiers.map((m) => (
-        <Box key={m.id}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', pl: 2 + depth * 2, py: 0.25 }}>
-            <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
-              {'└ '}
-              {m.quantity > 1 ? `${m.quantity}× ` : ''}
-              {m.modifierName}
-              {m.modifierGroupName && (
-                <Typography component="span" sx={{ fontSize: 11, color: 'text.disabled', ml: 0.5 }}>
-                  ({m.modifierGroupName})
-                </Typography>
-              )}
-            </Typography>
-            <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
-              {m.lineSubtotalAmount !== 0 ? `$${m.lineSubtotalAmountDollar}` : ''}
-            </Typography>
-          </Box>
-          {m.children?.length > 0 && <ModifierRows modifiers={m.children} depth={depth + 1} />}
-        </Box>
-      ))}
-    </>
-  );
-}
 
 // ── Check items table ─────────────────────────────────────────
 

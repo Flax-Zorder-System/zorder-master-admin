@@ -120,7 +120,7 @@ function TicketRow({ ticket, onClick }: { ticket: OrderTicket; onClick: () => vo
         {formatWithTimezone(ticket.createdAt, timezone)}
       </TableCell>
       <TableCell sx={{ fontSize: 12, whiteSpace: 'nowrap' }}>
-        {formatWithTimezone(ticket.confirmedAt, timezone)}
+        {ticket.confirmedAt ? formatWithTimezone(ticket.confirmedAt, timezone) : '—'}
       </TableCell>
     </TableRow>
   );
@@ -131,7 +131,6 @@ function TicketRow({ ticket, onClick }: { ticket: OrderTicket; onClick: () => vo
 const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
 export default function OrderTickets({ storeId }: { storeId: number }) {
-  const { timezone } = useTimezone();
   const [tickets, setTickets] = useState<OrderTicket[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
