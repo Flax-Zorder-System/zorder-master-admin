@@ -47,11 +47,11 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 // ── 행 ─────────────────────────────────────────────────────────
-function CheckRow({ check }: { check: MasterCheckSummary }) {
+function CheckRow({ check, storeId }: { check: MasterCheckSummary; storeId: number }) {
   const { timezone } = useTimezone();
 
   return (
-    <TableRow hover onClick={() => window.open(`/checks/${check.id}`, '_blank')} sx={{ cursor: 'pointer' }}>
+    <TableRow hover onClick={() => window.open(`/stores/${storeId}/checks/${check.id}`, '_blank')} sx={{ cursor: 'pointer' }}>
       <TableCell sx={{ fontSize: 12, fontFamily: 'monospace' }}>{check.id}</TableCell>
       <TableCell sx={{ fontSize: 12, fontFamily: 'monospace' }}>{check.parentId}</TableCell>
       <TableCell sx={{ fontSize: 12 }}>{check.tableName ?? '—'}</TableCell>
@@ -172,7 +172,7 @@ export default function Checks({ storeId }: { storeId: number }) {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  checks.map((c) => <CheckRow key={c.id} check={c} />)
+                  checks.map((c) => <CheckRow key={c.id} check={c} storeId={storeId} />)
                 )}
               </TableBody>
             </Table>

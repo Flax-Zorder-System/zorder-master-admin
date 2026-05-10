@@ -49,7 +49,7 @@ export default function App() {
               <Route path="/stores/:id" element={<StoreDetailPage />} />
               <Route path="/stores/:id/tickets/:ticketId" element={<OrderTicketDetailPage />} />
               <Route path="/stores/:id/sessions/:sessionId" element={<OrderSessionDetailPage />} />
-              <Route path="/checks/:checkId" element={<CheckDetailPage />} />
+              <Route path="/stores/:storeId/checks/:checkId" element={<CheckDetailPage />} />
             </Route>
           </Routes>
         </AuthProvider>

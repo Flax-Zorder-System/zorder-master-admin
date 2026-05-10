@@ -7,12 +7,14 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from '@mui/material';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutlined';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../lib/api';
-import type { CheckDetail, CheckItem, CheckModifier, CheckPayment } from '../types/check';
+import type { CheckBalance, CheckDetail, CheckItem, CheckModifier, CheckPayment, MasterCheckSummary } from '../types/check';
 import { formatWithTimezone, useTimezone } from '../contexts/TimezoneContext';
 import { usePageTitle } from '../hooks/usePageTitle';
 
@@ -244,6 +246,60 @@ function PaymentsTable({ payments, timezone }: { payments: CheckPayment[]; timez
   );
 }
 
+// ── Split Checks table ────────────────────────────────────────
+function SplitChecksTable({ checks, storeId }: { checks: MasterCheckSummary[]; storeId: string }) {
+  const { timezone } = useTimezone();
+  const fmt = (dollar: string) => `$${dollar}`;
+  return (
+    <Table size="small">
+      <TableHead>
+        <TableRow>
+          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50' }}>check id</TableCell>
+          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', width: 80 }}>status</TableCell>
+          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 80 }}>subtotal</TableCell>
+          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 70 }}>tax</TableCell>
+          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 80 }}>svc charge</TableCell>
+          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 70 }}>tip</TableCell>
+          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 80 }}>total</TableCell>
+          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50' }}>createdAt</TableCell>
+          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50' }}>closedAt</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {checks.map((c) => (
+          <TableRow
+            key={c.id}
+            hover
+            sx={{ cursor: 'pointer' }}
+            onClick={() => window.open(`/stores/${storeId}/checks/${c.id}`, '_blank')}
+          >
+            <TableCell sx={{ fontSize: 11, fontFamily: 'monospace' }}>{c.id}</TableCell>
+            <TableCell>
+              <Typography
+                variant="caption"
+                sx={{
+                  px: 0.75, py: 0.2, borderRadius: 0.5, fontWeight: 600,
+                  bgcolor: STATUS_BG[c.status] ?? '#f5f5f5',
+                  color: STATUS_COLOR[c.status] ?? '#616161',
+                }}
+              >
+                {c.status}
+              </Typography>
+            </TableCell>
+            <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{fmt(c.subtotalDollar)}</TableCell>
+            <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{c.taxAmount > 0 ? fmt(c.taxAmountDollar) : '—'}</TableCell>
+            <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{c.serviceChargeAmount > 0 ? fmt(c.serviceChargeAmountDollar) : '—'}</TableCell>
+            <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{c.tipAmount > 0 ? fmt(c.tipAmountDollar) : '—'}</TableCell>
+            <TableCell sx={{ fontSize: 12, textAlign: 'right', fontWeight: 700 }}>{fmt(c.totalAmountDollar)}</TableCell>
+            <TableCell sx={{ fontSize: 12, whiteSpace: 'nowrap' }}>{formatWithTimezone(c.createdAt, timezone)}</TableCell>
+            <TableCell sx={{ fontSize: 12, whiteSpace: 'nowrap' }}>{c.closedAt ? formatWithTimezone(c.closedAt, timezone) : '—'}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
 // ── Amount summary ────────────────────────────────────────────
 function AmountRow({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
@@ -258,22 +314,34 @@ function AmountRow({ label, value, bold }: { label: string; value: string; bold?
 
 // ── Page ──────────────────────────────────────────────────────
 export default function CheckDetailPage() {
-  const { checkId } = useParams<{ checkId: string }>();
+  const { storeId, checkId } = useParams<{ storeId: string; checkId: string }>();
   const { timezone } = useTimezone();
   const [check, setCheck] = useState<CheckDetail | null>(null);
   usePageTitle(check ? `Check #${check.id}${check.table ? ` · ${check.table.tableName}` : ''}` : null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [childChecks, setChildChecks] = useState<MasterCheckSummary[]>([]);
+  const [balance, setBalance] = useState<CheckBalance | null>(null);
 
   useEffect(() => {
     if (!checkId) return;
     setLoading(true);
-    api
-      .getCheckDetail(checkId)
-      .then((res) => setCheck(res.check))
+    Promise.all([
+      api.getCheckDetail(checkId),
+      api.getCheckBalance(checkId),
+    ])
+      .then(([detailRes, balanceRes]) => {
+        setCheck(detailRes.check);
+        setBalance(balanceRes);
+        if (!detailRes.check.parentId && storeId) {
+          api.getChildChecks(Number(storeId), checkId)
+            .then((r) => setChildChecks(r.checks))
+            .catch(() => {});
+        }
+      })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Failed to load'))
       .finally(() => setLoading(false));
-  }, [checkId]);
+  }, [checkId, storeId]);
 
   if (loading) {
     return (
@@ -311,7 +379,7 @@ export default function CheckDetailPage() {
           {check.parentId && (
             <Typography
               component="a"
-              href={`/checks/${check.parentId}`}
+              href={`/stores/${storeId}/checks/${check.parentId}`}
               target="_blank"
               rel="noopener noreferrer"
               sx={{
@@ -333,6 +401,135 @@ export default function CheckDetailPage() {
       </Box>
 
       <Divider sx={{ mb: 2.5 }} />
+
+      {/* Balance Status */}
+      {balance && (
+        <Box
+          sx={{
+            mb: 2.5,
+            p: 2,
+            borderRadius: 1,
+            border: '1px solid',
+            borderColor: balance.isComplete ? 'success.200' : 'warning.200',
+            bgcolor: balance.isComplete ? '#f1f8e9' : '#fffde7',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', mb: balance.detail || balance.childChecks.length > 0 ? 1.5 : 0 }}>
+            <Typography sx={{ fontWeight: 700, fontSize: 13, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              Balance
+            </Typography>
+            <Tooltip
+              arrow
+              placement="right"
+              title={
+                <Box sx={{ p: 0.5, maxWidth: 320 }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: 13, mb: 1 }}>결제 완결 상태란?</Typography>
+                  <Typography sx={{ fontSize: 12, mb: 1, lineHeight: 1.6 }}>
+                    이 테이블의 모든 주문 금액이 빠짐없이 결제되었는지 확인하는 섹션입니다.
+                  </Typography>
+                  <Typography sx={{ fontWeight: 700, fontSize: 12, mb: 0.5 }}>✅ COMPLETE</Typography>
+                  <Typography sx={{ fontSize: 12, mb: 1, lineHeight: 1.6 }}>
+                    모든 아이템이 결제 완료되고, 체크가 정상적으로 마감된 상태입니다.
+                  </Typography>
+                  <Typography sx={{ fontWeight: 700, fontSize: 12, mb: 0.5 }}>⚠️ INCOMPLETE — 주요 사유</Typography>
+                  {[
+                    ['UNPAID_ROOT_ITEMS', '결제되지 않은 아이템이 남아 있습니다'],
+                    ['OPEN_CHILD_CHECKS', '분할된 체크 중 아직 마감되지 않은 것이 있습니다'],
+                    ['UNPAID_CLOSED_CHILD_ITEMS', '마감된 분할 체크 안에 미결제 아이템이 있습니다'],
+                    ['ROOT_CHECK_NOT_CLOSED', '결제는 완료됐으나 체크가 아직 공식 마감 처리되지 않았습니다'],
+                    ['PENDING_SPLITS(n/m)', '금액 분할 결제 중 n/m건이 아직 미결제입니다'],
+                    ['CHECK_NOT_CLOSED', '체크 자체가 아직 결제되지 않은 상태입니다'],
+                  ].map(([code, desc]) => (
+                    <Box key={code} sx={{ display: 'flex', gap: 0.5, mb: 0.5 }}>
+                      <Typography sx={{ fontSize: 12, lineHeight: 1.6 }}>•</Typography>
+                      <Typography sx={{ fontSize: 12, lineHeight: 1.6 }}>
+                        <strong>{code}</strong> — {desc}
+                      </Typography>
+                    </Box>
+                  ))}
+                  <Typography sx={{ fontSize: 12, mt: 1, color: 'grey.300', lineHeight: 1.6 }}>
+                    💡 <em>splits</em> 항목을 클릭하면 분할된 개별 체크 상세로 이동할 수 있습니다.
+                  </Typography>
+                </Box>
+              }
+            >
+              <HelpOutlineIcon sx={{ fontSize: 16, color: 'text.disabled', cursor: 'help' }} />
+            </Tooltip>
+            <Typography
+              variant="caption"
+              sx={{
+                px: 1, py: 0.4, borderRadius: 0.75, fontWeight: 700, fontSize: 12,
+                bgcolor: balance.isComplete ? '#e8f5e9' : '#fff3e0',
+                color: balance.isComplete ? '#2e7d32' : '#e65100',
+              }}
+            >
+              {balance.isComplete ? 'COMPLETE' : 'INCOMPLETE'}
+            </Typography>
+            {parseFloat(balance.inflightAmountDollar) > 0 && (
+              <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+                in-flight: <strong>${balance.inflightAmountDollar}</strong>
+              </Typography>
+            )}
+          </Box>
+
+          {/* 미완결 사유 */}
+          {!balance.isComplete && balance.detail && (
+            <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mb: balance.childChecks.length > 0 ? 1 : 0 }}>
+              {balance.detail.split(',').map((code) => code.trim()).filter(Boolean).map((code) => (
+                <Typography
+                  key={code}
+                  variant="caption"
+                  sx={{ px: 0.75, py: 0.3, borderRadius: 0.5, bgcolor: '#ffebee', color: '#c62828', fontWeight: 600, fontSize: 11 }}
+                >
+                  {code}
+                </Typography>
+              ))}
+            </Box>
+          )}
+
+          {/* Child check 상태 목록 */}
+          {balance.childChecks.length > 0 && (
+            <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', alignItems: 'center' }}>
+              <Typography sx={{ fontSize: 11, color: 'text.secondary', mr: 0.5 }}>splits:</Typography>
+              {balance.childChecks.map((c) => (
+                <Typography
+                  key={c.id}
+                  component="a"
+                  href={`/stores/${storeId}/checks/${c.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="caption"
+                  sx={{
+                    px: 0.75, py: 0.3, borderRadius: 0.5, fontWeight: 600, fontSize: 11,
+                    textDecoration: 'none',
+                    bgcolor: STATUS_BG[c.status] ?? '#f5f5f5',
+                    color: STATUS_COLOR[c.status] ?? '#616161',
+                    '&:hover': { opacity: 0.8 },
+                  }}
+                >
+                  #{c.id} {c.status}
+                </Typography>
+              ))}
+            </Box>
+          )}
+
+          {/* split-by-amount splits */}
+          {balance.splits.length > 0 && (
+            <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', alignItems: 'center', mt: balance.childChecks.length > 0 ? 0.75 : 0 }}>
+              <Typography sx={{ fontSize: 11, color: 'text.secondary', mr: 0.5 }}>amount splits:</Typography>
+              {balance.splits.map((s) => (
+                <Typography
+                  key={s.index}
+                  variant="caption"
+                  sx={{ px: 0.75, py: 0.3, borderRadius: 0.5, bgcolor: '#e8eaf6', color: '#283593', fontWeight: 600, fontSize: 11 }}
+                >
+                  {s.index}. ${s.amountDollar}
+                </Typography>
+              ))}
+            </Box>
+          )}
+        </Box>
+      )}
 
       {/* 2-column: info + amounts */}
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, mb: 3 }}>
@@ -407,8 +604,57 @@ export default function CheckDetailPage() {
 
       {/* Payments */}
       <Divider sx={{ my: 2.5 }} />
-      <SectionTitle>Payments</SectionTitle>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+        <Typography sx={{ fontWeight: 700, fontSize: 13, textTransform: 'uppercase', color: 'text.secondary', letterSpacing: 0.5 }}>
+          Payments
+        </Typography>
+        <Tooltip
+          title={
+            <Box sx={{ fontSize: 12, lineHeight: 1.8, p: 0.5 }}>
+              <strong>결제 방식 안내</strong>
+              <br />
+              • 결제 내역이 <strong>1건</strong>이면 → 전체 금액을 한 번에 결제한 것입니다 (Pay in Full).
+              <br />
+              • 결제 내역이 <strong>2건 이상</strong>이면 → 금액을 나눠서 결제한 것입니다 (Split by Amount). 예: 여러 명이 각자 자신의 몫만큼 따로 결제하는 경우입니다.
+            </Box>
+          }
+          arrow
+          placement="right"
+        >
+          <HelpOutlineIcon sx={{ fontSize: 14, color: 'text.disabled', cursor: 'default', mt: '1px' }} />
+        </Tooltip>
+      </Box>
       <PaymentsTable payments={check.payments} timezone={timezone} />
+
+      {/* Split Checks */}
+      {childChecks.length > 0 && (
+        <>
+          <Divider sx={{ my: 2.5 }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+            <Typography sx={{ fontWeight: 700, fontSize: 13, textTransform: 'uppercase', color: 'text.secondary', letterSpacing: 0.5 }}>
+              Split Checks ({childChecks.length})
+            </Typography>
+            <Tooltip
+              title={
+                <Box sx={{ fontSize: 12, lineHeight: 1.8, p: 0.5 }}>
+                  <strong>체크 분할(Split Check) 안내</strong>
+                  <br />
+                  테이블 손님들이 각자 따로 계산하고 싶을 때, 하나의 체크를 여러 개로 분할할 수 있습니다.
+                  <br />
+                  • 이 체크는 <strong>원본(Root) 체크</strong>입니다. 분할이 이루어지면 실제 결제는 각 분할 체크에서 진행되므로, <strong>이 원본 체크에는 결제 내역(Payments)이 없습니다.</strong>
+                  <br />
+                  • 아래 목록의 각 분할 체크를 클릭하면 해당 체크의 상세 내역과 결제 정보를 확인할 수 있습니다.
+                </Box>
+              }
+              arrow
+              placement="right"
+            >
+              <HelpOutlineIcon sx={{ fontSize: 14, color: 'text.disabled', cursor: 'default', mt: '1px' }} />
+            </Tooltip>
+          </Box>
+          <SplitChecksTable checks={childChecks} storeId={storeId!} />
+        </>
+      )}
     </Box>
   );
 }

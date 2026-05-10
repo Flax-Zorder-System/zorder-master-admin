@@ -7,8 +7,10 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from '@mui/material';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutlined';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../lib/api';
@@ -105,7 +107,7 @@ function OrderTicketsTable({ tickets, storeId }: { tickets: OrderTicketBrief[]; 
 
 // ── Checks 테이블 ─────────────────────────────────────────────
 
-function ChecksTable({ checks }: { checks: CheckBrief[] }) {
+function ChecksTable({ checks, storeId }: { checks: CheckBrief[]; storeId: string }) {
   const { timezone } = useTimezone();
   const fmt = (cents: number) => `$${(cents / 100).toFixed(2)}`;
   return (
@@ -131,7 +133,7 @@ function ChecksTable({ checks }: { checks: CheckBrief[] }) {
             key={c.id}
             hover
             sx={{ cursor: 'pointer' }}
-            onClick={() => window.open(`/checks/${c.id}`, '_blank')}
+            onClick={() => window.open(`/stores/${storeId}/checks/${c.id}`, '_blank')}
           >
             <TableCell sx={{ ...CELL, fontFamily: 'monospace', fontSize: 11 }}>{c.id}</TableCell>
             <TableCell sx={{ ...CELL, fontFamily: 'monospace', fontSize: 11 }}>{c.parentId ?? '—'}</TableCell>
@@ -217,6 +219,33 @@ export default function OrderSessionDetailPage() {
           <Typography sx={{ fontWeight: 700, fontSize: 20 }}>
             {detail.tableName ?? 'Order Session'}
           </Typography>
+          <Tooltip
+            title={
+              <Box sx={{ fontSize: 12, lineHeight: 2, p: 0.5 }}>
+                <strong>Order Session 상태 안내</strong>
+                <br />
+                • <strong>OPEN</strong> — 세션이 생성됐지만 아직 손님이 착석하지 않은 초기 상태입니다.
+                <br />
+                • <strong>SEATED</strong> — 손님이 착석하여 세션이 활성화된 상태입니다. 아직 주문은 들어오지 않았습니다.
+                <br />
+                • <strong>ORDERED</strong> — 손님이 주문을 제출한 상태입니다. 주방에서 아직 확인하지 않았을 수 있습니다.
+                <br />
+                • <strong>CONFIRMED_ALL</strong> — 모든 주문이 주방(POS)에서 확인(접수) 완료된 상태입니다.
+                <br />
+                • <strong>CHECK_REQUESTED</strong> — 손님이 계산서를 요청한 상태입니다. 결제 준비 중입니다.
+                <br />
+                • <strong>POS_INTEGRATION_FAILED</strong> — POS 시스템과의 연동 중 오류가 발생한 상태입니다. 수동 확인이 필요합니다.
+                <br />
+                • <strong>CLOSED</strong> — 결제가 완료되어 세션이 정상 마감된 상태입니다.
+                <br />
+                • <strong>CANCELLED</strong> — 세션이 취소된 상태입니다.
+              </Box>
+            }
+            arrow
+            placement="right"
+          >
+            <HelpOutlineIcon sx={{ fontSize: 16, color: 'text.disabled', cursor: 'default' }} />
+          </Tooltip>
           <Badge
             label={detail.statusLabel}
             bg={SESSION_STATUS_BG[detail.statusLabel] ?? '#f5f5f5'}
@@ -225,6 +254,11 @@ export default function OrderSessionDetailPage() {
           <Typography variant="caption" sx={{ px: 0.75, py: 0.2, borderRadius: 0.5, bgcolor: '#e8eaf6', color: '#283593', fontWeight: 600 }}>
             {detail.orderTypeLabel}
           </Typography>
+          {detail.tableIsKioskMode && (
+            <Typography variant="caption" sx={{ px: 0.75, py: 0.2, borderRadius: 0.5, bgcolor: '#e0f7fa', color: '#006064', fontWeight: 600 }}>
+              KIOSK
+            </Typography>
+          )}
         </Box>
       </Box>
 
@@ -277,7 +311,7 @@ export default function OrderSessionDetailPage() {
       {detail.checks.length === 0 ? (
         <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>No checks.</Typography>
       ) : (
-        <ChecksTable checks={detail.checks} />
+        <ChecksTable checks={detail.checks} storeId={id!} />
       )}
     </Box>
   );

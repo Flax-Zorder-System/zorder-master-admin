@@ -12,6 +12,7 @@ export interface OrderSessionSummary {
   orderTypeLabel: string;
   tableId: number | null;
   tableName: string | null;
+  tableIsKioskMode: boolean;
   totalGuestCount: number;
   guestTiers: OrderSessionGuestTier[];
   checkCount: number;

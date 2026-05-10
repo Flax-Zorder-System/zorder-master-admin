@@ -241,7 +241,7 @@ export default function OrderTicketDetailPage() {
               value={
                 <Typography
                   component="a"
-                  href={`/checks/${detail.checkId}`}
+                  href={`/stores/${id}/checks/${detail.checkId}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   sx={{

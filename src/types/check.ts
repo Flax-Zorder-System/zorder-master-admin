@@ -130,6 +130,21 @@ export interface CheckDetailResponse {
   check: CheckDetail;
 }
 
+export interface CheckBalanceChildCheck {
+  id: string;
+  status: string;
+}
+
+export interface CheckBalance {
+  checkId: string;
+  status: string;
+  isComplete: boolean;
+  detail: string;
+  inflightAmountDollar: string;
+  childChecks: CheckBalanceChildCheck[];
+  splits: { index: number; amountDollar: string }[];
+}
+
 // ── Check List ────────────────────────────────────────────────
 
 export interface MasterCheckSummary {
@@ -154,6 +169,10 @@ export interface MasterCheckSummary {
   totalAmountDollar: string;
   createdAt: string;
   closedAt: string | null;
+}
+
+export interface ChildChecksResponse {
+  checks: MasterCheckSummary[];
 }
 
 export interface MasterChecksResponse {

@@ -6,7 +6,7 @@ import type {
   StorePaymentConfig,
 } from '../types/api';
 import type { AuditLog } from '../types/auditLog';
-import type { CheckDetailResponse, MasterChecksResponse } from '../types/check';
+import type { CheckBalance, CheckDetailResponse, ChildChecksResponse, MasterChecksResponse } from '../types/check';
 import type { OrderTicketDetail, OrderTicketsResponse } from '../types/orderTicket';
 import type { PrintJobsResponse } from '../types/printJob';
 import type { OrderSessionDetail, OrderSessionsResponse } from '../types/orderSession';
@@ -140,6 +140,12 @@ export const api = {
 
   getCheckDetail: (checkId: string) =>
     request<CheckDetailResponse>(`/v4/checks/${checkId}`),
+
+  getCheckBalance: (checkId: string) =>
+    request<CheckBalance>(`/v4/checks/${checkId}/balance`),
+
+  getChildChecks: (storeId: number, checkId: string) =>
+    request<ChildChecksResponse>(`/v4/master/checks/stores/${storeId}/checks/${checkId}/splits`),
 
   getOrderSessions: (
     storeId: number,
