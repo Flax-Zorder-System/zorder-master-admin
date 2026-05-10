@@ -7,6 +7,7 @@ import StoreDetailPage from './pages/StoreDetailPage';
 import OrderTicketDetailPage from './pages/OrderTicketDetailPage';
 import OrderSessionDetailPage from './pages/OrderSessionDetailPage';
 import CheckDetailPage from './pages/CheckDetailPage';
+import PaymentDetailPage from './pages/PaymentDetailPage';
 import LoginPage from './pages/LoginPage';
 import { TimezoneProvider } from './contexts/TimezoneContext';
 import { AuthProvider } from './contexts/AuthContext';
@@ -50,6 +51,7 @@ export default function App() {
               <Route path="/stores/:id/tickets/:ticketId" element={<OrderTicketDetailPage />} />
               <Route path="/stores/:id/sessions/:sessionId" element={<OrderSessionDetailPage />} />
               <Route path="/stores/:storeId/checks/:checkId" element={<CheckDetailPage />} />
+              <Route path="/stores/:storeId/payments/:paymentId" element={<PaymentDetailPage />} />
             </Route>
           </Routes>
         </AuthProvider>

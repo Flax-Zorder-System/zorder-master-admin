@@ -61,8 +61,21 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 // ── Check items table ─────────────────────────────────────────
 
+const centsToDisplay = (...cents: number[]) => `$${(cents.reduce((a, b) => a + b, 0) / 100).toFixed(2)}`;
+
 const CELL = { fontSize: 12, borderBottom: 'none', py: 0.75 } as const;
 const HEAD_CELL = { ...CELL, fontWeight: 700, color: 'text.secondary', fontSize: 11, pb: 0.5, bgcolor: 'grey.50' } as const;
+
+function HeadWithTip({ children, tip, align = 'left' }: { children: React.ReactNode; tip: string; align?: 'left' | 'right' | 'center' }) {
+  return (
+    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.4, justifyContent: align === 'right' ? 'flex-end' : align === 'center' ? 'center' : 'flex-start', width: '100%' }}>
+      {children}
+      <Tooltip title={tip} arrow placement="top">
+        <HelpOutlineIcon sx={{ fontSize: 11, color: 'text.disabled', cursor: 'default', flexShrink: 0 }} />
+      </Tooltip>
+    </Box>
+  );
+}
 
 function ModifierTableRows({ modifiers, depth = 0 }: { modifiers: CheckModifier[]; depth?: number }) {
   if (!modifiers.length) return null;
@@ -105,13 +118,27 @@ function CheckItemsTable({ items, timezone }: { items: CheckItem[]; timezone: st
     <Table size="small" sx={{ tableLayout: 'fixed' }}>
       <TableHead>
         <TableRow>
-          <TableCell sx={{ ...HEAD_CELL, width: '35%' }}>item</TableCell>
-          <TableCell sx={{ ...HEAD_CELL, textAlign: 'right', width: 70 }}>unit</TableCell>
-          <TableCell sx={{ ...HEAD_CELL, textAlign: 'center', width: 40 }}>qty</TableCell>
-          <TableCell sx={{ ...HEAD_CELL, textAlign: 'right', width: 90 }}>subtotal</TableCell>
-          <TableCell sx={{ ...HEAD_CELL, textAlign: 'right', width: 70 }}>tax</TableCell>
-          <TableCell sx={{ ...HEAD_CELL, textAlign: 'right', width: 90 }}>total</TableCell>
-          <TableCell sx={{ ...HEAD_CELL, width: 150 }}>paidAt</TableCell>
+          <TableCell sx={{ ...HEAD_CELL, width: '35%' }}>
+            <HeadWithTip tip="메뉴 아이템 이름입니다. 취소(void)된 항목은 흐리게 표시됩니다.">item</HeadWithTip>
+          </TableCell>
+          <TableCell sx={{ ...HEAD_CELL, textAlign: 'right', width: 70 }}>
+            <HeadWithTip tip="해당 아이템의 개당 단가입니다." align="right">unit</HeadWithTip>
+          </TableCell>
+          <TableCell sx={{ ...HEAD_CELL, textAlign: 'center', width: 40 }}>
+            <HeadWithTip tip="주문 수량입니다." align="center">qty</HeadWithTip>
+          </TableCell>
+          <TableCell sx={{ ...HEAD_CELL, textAlign: 'right', width: 90 }}>
+            <HeadWithTip tip="단가 × 수량으로 계산한 세금 전 소계입니다. (unit × qty)" align="right">subtotal</HeadWithTip>
+          </TableCell>
+          <TableCell sx={{ ...HEAD_CELL, textAlign: 'right', width: 70 }}>
+            <HeadWithTip tip="이 아이템에 부과된 세금 금액입니다. 세금이 없으면 —로 표시됩니다." align="right">tax</HeadWithTip>
+          </TableCell>
+          <TableCell sx={{ ...HEAD_CELL, textAlign: 'right', width: 90 }}>
+            <HeadWithTip tip="subtotal + tax를 합산한 아이템의 최종 금액입니다." align="right">total</HeadWithTip>
+          </TableCell>
+          <TableCell sx={{ ...HEAD_CELL, width: 150 }}>
+            <HeadWithTip tip="이 아이템이 실제 결제 완료된 시각입니다. 아직 미결제 상태이면 —로 표시됩니다.">paidAt</HeadWithTip>
+          </TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -150,7 +177,7 @@ function CheckItemsTable({ items, timezone }: { items: CheckItem[]; timezone: st
                   {item.taxAmount > 0 ? `$${item.taxAmountDollar}` : '—'}
                 </TableCell>
                 <TableCell sx={{ ...CELL, textAlign: 'right', fontWeight: 600 }}>
-                  ${item.subtotalAmountDollar}
+                  {centsToDisplay(item.subtotalAmount, item.taxAmount)}
                 </TableCell>
                 <TableCell sx={{ ...CELL, color: item.paidAt ? 'success.dark' : 'text.disabled', fontSize: 11, whiteSpace: 'nowrap' }}>
                   {item.paidAt ? formatWithTimezone(item.paidAt, timezone) : '—'}
@@ -175,7 +202,7 @@ const PAYMENT_STATUS_COLOR: Record<string, string> = {
   SALE: '#2e7d32', VOID: '#c62828', REFUND: '#e65100',
 };
 
-function PaymentsTable({ payments, timezone }: { payments: CheckPayment[]; timezone: string }) {
+function PaymentsTable({ payments, timezone, storeId }: { payments: CheckPayment[]; timezone: string; storeId: string }) {
   if (!payments.length) return <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>No payments.</Typography>;
   return (
     <Table size="small">
@@ -191,7 +218,12 @@ function PaymentsTable({ payments, timezone }: { payments: CheckPayment[]; timez
       </TableHead>
       <TableBody>
         {payments.map((p) => (
-          <TableRow key={p.id}>
+          <TableRow
+            key={p.id}
+            hover
+            sx={{ cursor: 'pointer' }}
+            onClick={() => window.open(`/stores/${storeId}/payments/${p.id}`, '_blank')}
+          >
             <TableCell sx={{ fontSize: 12 }}>{PAYMENT_METHOD_LABEL[p.method] ?? p.method}</TableCell>
             <TableCell sx={{ fontSize: 12 }}>
               <Typography
@@ -381,8 +413,7 @@ export default function CheckDetailPage() {
             mb: 2.5,
             p: 2,
             borderRadius: 1,
-            border: '1px solid',
-            borderColor: balance.isComplete ? 'success.200' : 'warning.200',
+            border: '1px solid #eee',
             bgcolor: balance.isComplete ? '#f1f8e9' : '#fffde7',
           }}
         >
@@ -596,7 +627,7 @@ export default function CheckDetailPage() {
           <HelpOutlineIcon sx={{ fontSize: 14, color: 'text.disabled', cursor: 'default', mt: '1px' }} />
         </Tooltip>
       </Box>
-      <PaymentsTable payments={check.payments} timezone={timezone} />
+      <PaymentsTable payments={check.payments} timezone={timezone} storeId={storeId!} />
 
       {/* Split Checks */}
       {childChecks.length > 0 && (

@@ -10,6 +10,8 @@ import type { CheckBalance, CheckDetailResponse, ChildChecksResponse, MasterChec
 import type { OrderTicketDetail, OrderTicketsResponse } from '../types/orderTicket';
 import type { PrintJobsResponse } from '../types/printJob';
 import type { OrderSessionDetail, OrderSessionsResponse } from '../types/orderSession';
+import type { PaymentIntentsResponse } from '../types/paymentIntent';
+import type { PaymentDetail } from '../types/payment';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -119,11 +121,11 @@ export const api = {
     if (params?.page != null) query.set('page', String(params.page));
     if (params?.pageSize != null) query.set('pageSize', String(params.pageSize));
     const qs = query.toString();
-    return request<OrderTicketsResponse>(`/v4/master/orders/stores/${storeId}/tickets${qs ? `?${qs}` : ''}`);
+    return request<OrderTicketsResponse>(`/v4/stores/${storeId}/orders/tickets${qs ? `?${qs}` : ''}`);
   },
 
   getOrderTicketDetail: (storeId: number, orderTicketId: string) =>
-    request<OrderTicketDetail>(`/v4/master/orders/stores/${storeId}/tickets/${orderTicketId}`),
+    request<OrderTicketDetail>(`/v4/stores/${storeId}/orders/tickets/${orderTicketId}`),
 
   getChecks: (
     storeId: number,
@@ -135,7 +137,7 @@ export const api = {
     if (params?.page != null) query.set('page', String(params.page));
     if (params?.pageSize != null) query.set('pageSize', String(params.pageSize));
     const qs = query.toString();
-    return request<MasterChecksResponse>(`/v4/master/checks/stores/${storeId}/checks${qs ? `?${qs}` : ''}`);
+    return request<MasterChecksResponse>(`/v4/stores/${storeId}/checks${qs ? `?${qs}` : ''}`);
   },
 
   getCheckDetail: (checkId: string) =>
@@ -145,7 +147,7 @@ export const api = {
     request<CheckBalance>(`/v4/checks/${checkId}/balance`),
 
   getChildChecks: (storeId: number, checkId: string) =>
-    request<ChildChecksResponse>(`/v4/master/checks/stores/${storeId}/checks/${checkId}/splits`),
+    request<ChildChecksResponse>(`/v4/stores/${storeId}/checks/${checkId}/splits`),
 
   getOrderSessions: (
     storeId: number,
@@ -157,11 +159,11 @@ export const api = {
     if (params?.page != null) query.set('page', String(params.page));
     if (params?.pageSize != null) query.set('pageSize', String(params.pageSize));
     const qs = query.toString();
-    return request<OrderSessionsResponse>(`/v4/master/orders/stores/${storeId}/order-sessions${qs ? `?${qs}` : ''}`);
+    return request<OrderSessionsResponse>(`/v4/stores/${storeId}/orders/order-sessions${qs ? `?${qs}` : ''}`);
   },
 
   getOrderSessionDetail: (storeId: number, orderSessionId: string) =>
-    request<OrderSessionDetail>(`/v4/master/orders/stores/${storeId}/order-sessions/${orderSessionId}`),
+    request<OrderSessionDetail>(`/v4/stores/${storeId}/orders/order-sessions/${orderSessionId}`),
 
   getPrintJobs: (
     storeId: number,
@@ -173,6 +175,22 @@ export const api = {
     if (params?.page != null) query.set('page', String(params.page));
     if (params?.pageSize != null) query.set('pageSize', String(params.pageSize));
     const qs = query.toString();
-    return request<PrintJobsResponse>(`/v4/master/prints/stores/${storeId}/jobs${qs ? `?${qs}` : ''}`);
+    return request<PrintJobsResponse>(`/v4/stores/${storeId}/prints/jobs${qs ? `?${qs}` : ''}`);
   },
+
+  getPaymentIntents: (
+    storeId: number,
+    params?: { startDate?: string; endDate?: string; page?: number; pageSize?: number }
+  ) => {
+    const query = new URLSearchParams();
+    if (params?.startDate) query.set('startDate', params.startDate);
+    if (params?.endDate) query.set('endDate', params.endDate);
+    if (params?.page != null) query.set('page', String(params.page));
+    if (params?.pageSize != null) query.set('pageSize', String(params.pageSize));
+    const qs = query.toString();
+    return request<PaymentIntentsResponse>(`/v4/store/${storeId}/payments/payment-intents${qs ? `?${qs}` : ''}`);
+  },
+
+  getPaymentDetail: (storeId: number, paymentId: string) =>
+    request<PaymentDetail>(`/v4/store/${storeId}/payments/${paymentId}/transaction`),
 };

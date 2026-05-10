@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import HistoryIcon from '@mui/icons-material/History';
+import PaymentIcon from '@mui/icons-material/Payment';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import MenuIcon from '@mui/icons-material/Menu';
 import IconButton from '@mui/material/IconButton';
@@ -19,7 +20,7 @@ import PrintIcon from '@mui/icons-material/Print';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
-export type StoreMenu = 'STORE_INFO' | 'STORE_AUDIT' | 'ORDER_TICKETS' |'ORDER_SESSIONS' | 'CHECK' | 'PRINT_JOB';
+export type StoreMenu = 'STORE_INFO' | 'STORE_AUDIT' | 'ORDER_TICKETS' | 'ORDER_SESSIONS' | 'CHECK' | 'PRINT_JOB' | 'PAYMENT_INTENT';
 
 export const menuItems: { key: StoreMenu; label: string; icon: React.ReactNode }[] = [
   { key: 'STORE_INFO', label: 'store info', icon: <InfoOutlinedIcon fontSize="small" /> },
@@ -27,6 +28,7 @@ export const menuItems: { key: StoreMenu; label: string; icon: React.ReactNode }
   { key: 'ORDER_SESSIONS', label: 'Order Sessions', icon: <RoomServiceIcon fontSize="small" /> },
   { key: 'CHECK', label: 'Checks', icon: <ReceiptLongIcon fontSize="small" /> },
   { key: 'PRINT_JOB', label: 'Print jobs', icon: <PrintIcon fontSize="small" /> },
+  { key: 'PAYMENT_INTENT', label: 'Payment Intents', icon: <PaymentIcon fontSize="small" /> },
   { key: 'STORE_AUDIT', label: 'Audit logs', icon: <HistoryIcon fontSize="small" /> },
 ];
 
