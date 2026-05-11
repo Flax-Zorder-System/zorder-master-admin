@@ -12,6 +12,7 @@ import AppBar from '@mui/material/AppBar';
 import Button from '@mui/material/Button';
 import HomeIcon from '@mui/icons-material/Home';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { TIMEZONE_OPTIONS, useTimezone } from '../contexts/TimezoneContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -53,6 +54,12 @@ export default function Layout() {
           />
 
           <Box sx={{ flex: 1 }} />
+
+          <Tooltip title="주문 개념 가이드">
+            <IconButton size="small" onClick={() => window.open('/order-concepts.html', '_blank')}>
+              <MenuBookIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
 
           {/* Timezone selector */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>

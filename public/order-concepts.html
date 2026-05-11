@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>주문 개념 가이드 · Zorder Master</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+<style>
+  :root {
+    --bg-page:    #f5f5f5;
+    --bg:         #ffffff;
+    --bg-hover:   #fafafa;
+    --border:     rgba(0,0,0,0.12);
+    --border-md:  rgba(0,0,0,0.2);
+    --text:       rgba(0,0,0,0.87);
+    --text-sub:   rgba(0,0,0,0.6);
+    --text-muted: rgba(0,0,0,0.38);
+    --radius:     6px;
+    --shadow:     0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+
+    --session:  #2383e2; --session-bg: #eaf3fc; --session-tag: #d0e8f8;
+    --order:    #9065b0; --order-bg:   #f4eef8; --order-tag:   #e8d9f3;
+    --ticket:   #0f9b6e; --ticket-bg:  #e9f6f1; --ticket-tag:  #c6ead9;
+    --check:    #cb6a24; --check-bg:   #fdf3eb; --check-tag:   #fad7b5;
+    --payment:  #c0426c; --payment-bg: #fdf0f4; --payment-tag: #f5c2d0;
+    --intent:   #0891b2; --intent-bg:  #ecfeff; --intent-tag:  #cffafe;
+    --txn:      #7d52b6; --txn-bg:     #f2eefb; --txn-tag:     #ddd0f5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-page);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    height: 44px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 24px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+  .topbar-icon { font-size: 15px; }
+  .topbar-title { font-size: 13px; font-weight: 700; }
+  .topbar-sep { color: var(--border-md); }
+  .topbar-sub { font-size: 12px; color: var(--text-muted); }
+  .topbar-env {
+    margin-left: auto;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.4px;
+    padding: 2px 8px; border-radius: 3px;
+    background: #e8f5e9; color: #2e7d32;
+  }
+
+  /* ── Page ── */
+  .page {
+    max-width: 900px;
+    margin: 24px auto;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 48px 64px 80px;
+  }
+  @media (max-width: 720px) {
+    .page { margin: 0; border-radius: 0; border-left: none; border-right: none; padding: 28px 20px 60px; }
+  }
+
+  .page-icon { font-size: 2.2rem; margin-bottom: 10px; }
+  .page-title { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 28px; }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 30px 0; }
+
+  /* ── Callout ── */
+  .callout {
+    display: flex; gap: 10px;
+    background: #f5f5f5;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 11px 14px;
+    font-size: 13px; color: var(--text-sub);
+    margin-bottom: 20px;
+  }
+  .callout strong { color: var(--text); }
+
+  /* ── Section heading ── */
+  .h2 {
+    font-size: 11px; font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.8px;
+    margin-bottom: 12px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── Concept cards ── */
+  .card {
+    border: 1px solid var(--border);
+    border-left: 3px solid transparent;
+    border-radius: var(--radius);
+    padding: 13px 16px; margin-bottom: 7px;
+    background: var(--bg);
+    transition: background 0.1s;
+  }
+  .card:hover { background: var(--bg-hover); }
+  .card.session { border-left-color: var(--session); }
+  .card.order   { border-left-color: var(--order); }
+  .card.ticket  { border-left-color: var(--ticket); }
+  .card.check   { border-left-color: var(--check); }
+  .card.payment { border-left-color: var(--payment); }
+  .card.intent  { border-left-color: var(--intent); }
+  .card.txn     { border-left-color: var(--txn); }
+
+  .card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+
+  .pill {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 10px; font-weight: 600;
+    padding: 2px 7px; border-radius: 20px; letter-spacing: 0.3px;
+  }
+  .session .pill { background: var(--session-bg); color: var(--session); }
+  .order   .pill { background: var(--order-bg);   color: var(--order); }
+  .ticket  .pill { background: var(--ticket-bg);  color: var(--ticket); }
+  .check   .pill { background: var(--check-bg);   color: var(--check); }
+  .payment .pill { background: var(--payment-bg); color: var(--payment); }
+  .intent  .pill { background: var(--intent-bg);  color: var(--intent); }
+  .txn     .pill { background: var(--txn-bg);     color: var(--txn); }
+
+  .card-name { font-size: 13px; font-weight: 700; }
+  .card-desc { font-size: 13px; color: var(--text-sub); line-height: 1.65; margin-bottom: 9px; }
+  .card-desc strong { color: var(--text); font-weight: 600; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag {
+    font-size: 11px; padding: 2px 6px; border-radius: 3px;
+    color: var(--text-muted); border: 1px solid var(--border);
+    background: var(--bg-page);
+  }
+
+  /* ── Flow ── */
+  .flow { display: flex; flex-direction: column; }
+  .flow-row { display: flex; }
+  .flow-node {
+    flex: 1; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 9px 14px; margin: 2px 0;
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg); font-size: 13px;
+  }
+  .flow-node.session { border-left: 3px solid var(--session); }
+  .flow-node.order   { border-left: 3px solid var(--order); }
+  .flow-node.ticket  { border-left: 3px solid var(--ticket); }
+  .flow-node.check   { border-left: 3px solid var(--check); }
+  .flow-node.payment { border-left: 3px solid var(--payment); }
+  .flow-node.intent  { border-left: 3px solid var(--intent); }
+  .flow-node.txn     { border-left: 3px solid var(--txn); }
+  .flow-label { font-weight: 700; font-size: 13px; }
+  .flow-sub   { font-size: 11px; color: var(--text-muted); }
+  .flow-meta  { font-size: 11px; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
+  .flow-conn  {
+    height: 20px; display: flex; align-items: center;
+  }
+  .flow-conn-line { width: 1px; height: 20px; background: var(--border-md); margin-right: 8px; }
+  .flow-conn-lbl  { font-size: 10px; color: var(--text-muted); }
+
+  /* ── Status grid ── */
+  .status-list { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; }
+  .status-row  { display: flex; align-items: flex-start; gap: 12px; padding: 9px 14px; border-bottom: 1px solid var(--border); }
+  .status-row:last-child { border-bottom: none; }
+  .status-row:hover { background: var(--bg-hover); }
+  .sbadge {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 7px; border-radius: 3px;
+    white-space: nowrap; flex-shrink: 0; margin-top: 1px;
+  }
+  .status-desc { font-size: 13px; color: var(--text-sub); line-height: 1.55; }
+  .status-desc strong { color: var(--text); font-weight: 600; }
+  .status-section-label { font-size: 12px; font-weight: 600; color: var(--text-sub); margin-bottom: 8px; margin-top: 4px; }
+
+  /* ── Timeline ── */
+  .timeline { position: relative; padding-left: 18px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 5px; top: 8px; bottom: 8px;
+    width: 1px; background: var(--border-md);
+  }
+  .tl-item { position: relative; margin-bottom: 16px; padding-left: 14px; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -13px; top: 6px;
+    width: 7px; height: 7px; border-radius: 50%;
+    border: 1.5px solid var(--border-md); background: var(--bg);
+  }
+  .tl-item.session::before { border-color: var(--session); background: var(--session); }
+  .tl-item.order::before   { border-color: var(--order);   background: var(--order); }
+  .tl-item.ticket::before  { border-color: var(--ticket);  background: var(--ticket); }
+  .tl-item.check::before   { border-color: var(--check);   background: var(--check); }
+  .tl-item.payment::before { border-color: var(--payment); background: var(--payment); }
+  .tl-item.txn::before     { border-color: var(--txn);     background: var(--txn); }
+  .tl-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
+  .tl-item.session .tl-label { color: var(--session); }
+  .tl-item.order   .tl-label { color: var(--order); }
+  .tl-item.ticket  .tl-label { color: var(--ticket); }
+  .tl-item.check   .tl-label { color: var(--check); }
+  .tl-item.payment .tl-label { color: var(--payment); }
+  .tl-item.txn     .tl-label { color: var(--txn); }
+  .tl-text { font-size: 13px; color: var(--text); }
+  .tl-sub  { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── Grid ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  @media (max-width: 560px) { .grid2 { grid-template-columns: 1fr; } }
+  .grid-item { background: var(--bg-page); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+  .grid-label { font-size: 10px; color: var(--text-muted); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+  .grid-value { font-size: 13px; color: var(--text); }
+
+  /* ── Table ── */
+  .tbl-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tbl th {
+    text-align: left; padding: 8px 12px;
+    background: #f5f5f5; color: var(--text-muted);
+    font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tbl td { padding: 9px 12px; border-bottom: 1px solid var(--border); color: var(--text-sub); vertical-align: middle; }
+  .tbl tr:last-child td { border-bottom: none; }
+  .tbl tr:hover td { background: var(--bg-hover); }
+
+  /* ── SVG box ── */
+  .svg-box { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--bg); }
+  .svg-legend {
+    display: flex; flex-wrap: wrap; gap: 14px;
+    padding: 11px 18px 13px; border-top: 1px solid var(--border); background: #f5f5f5;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-sub); }
+  .legend-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-icon">📋</span>
+  <span class="topbar-title">주문 개념 가이드</span>
+  <span class="topbar-sep">·</span>
+  <span class="topbar-sub">Order Session · Ticket · Check · Payment · Transaction · Payment Intent</span>
+  <span class="topbar-env">Zorder Master</span>
+</div>
+
+<div class="page">
+
+  <div class="page-icon">📋</div>
+  <h1 class="page-title">주문 개념 가이드</h1>
+  <p class="page-subtitle">비개발자도 이해할 수 있는 핵심 개념 설명 · 실제 식당 시나리오 기반</p>
+
+  <div class="callout">
+    <span>💡</span>
+    <span>각 개념이 <strong>실제 식당에서 어떤 역할을 하는지</strong>를 중심으로 설명합니다. 결제 문제나 데이터 이상이 발생했을 때 어느 레이어를 확인해야 하는지 빠르게 파악할 수 있습니다.</span>
+  </div>
+
+  <hr class="divider">
+
+  <!-- 1. 개념 개요 -->
+  <h2 class="h2">개념 개요</h2>
+
+  <div class="card session">
+    <div class="card-head"><span class="pill">ORDER SESSION</span><span class="card-name">오더 세션</span></div>
+    <p class="card-desc">손님이 자리에 앉는 순간부터 식사가 완전히 끝날 때까지의 <strong>전체 맥락</strong>을 담는 그릇입니다. "오늘 3번 테이블에서 어떤 일이 있었나?"를 파악할 수 있는 기록입니다.</p>
+    <div class="tags">
+      <span class="tag">착석 ~ 퇴석</span><span class="tag">배달 / 테이크아웃 / 매장</span><span class="tag">인원수</span><span class="tag">테이블 정보</span><span class="tag">Order와 1:1 연결</span><span class="tag">KIOSK 모드 여부</span>
+    </div>
+  </div>
+
+  <div class="card order">
+    <div class="card-head"><span class="pill">ORDER</span><span class="card-name">오더</span></div>
+    <p class="card-desc">해당 세션에서 발생한 <strong>전체 주문의 금액 정보</strong>를 관리합니다. "이 테이블에서 총 얼마가 나왔나?"를 답하는 단위입니다.</p>
+    <div class="tags">
+      <span class="tag">총 금액</span><span class="tag">세금 합계</span><span class="tag">할인 / 크레딧</span><span class="tag">OrderSession과 1:1</span>
+    </div>
+  </div>
+
+  <div class="card ticket">
+    <div class="card-head"><span class="pill">ORDER TICKET</span><span class="card-name">오더 티켓</span></div>
+    <p class="card-desc">손님이 <strong>한 번에 주문한 묶음</strong>입니다. 주문 버튼을 누를 때마다 티켓이 하나씩 생깁니다. 주방 디스플레이(KDS)나 주문서에 출력되는 단위입니다.</p>
+    <div class="tags">
+      <span class="tag">KDS 출력 단위</span><span class="tag">주방 주문서</span><span class="tag">주문 시각</span><span class="tag">Order 내 여러 개 가능</span>
+    </div>
+  </div>
+
+  <div class="card check">
+    <div class="card-head"><span class="pill">CHECK</span><span class="card-name">체크</span></div>
+    <p class="card-desc">실제로 <strong>청구되는 단위</strong>입니다. 아이템별 가격·세금·수수료·차지가 확정되는 곳이며, 모든 주문에는 반드시 하나 이상의 Check가 존재합니다. 분할 결제 시 Check가 여러 개 생길 수 있습니다.</p>
+    <div class="tags">
+      <span class="tag">청구 단위</span><span class="tag">가격 / 세금</span><span class="tag">서비스차지 / 그래튜이티</span><span class="tag">서비스피</span><span class="tag">Order당 1개 이상 필수</span><span class="tag">분할 결제 가능</span>
+    </div>
+  </div>
+
+  <div class="card payment">
+    <div class="card-head"><span class="pill">PAYMENT</span><span class="card-name">페이먼트</span></div>
+    <p class="card-desc">Check에 대한 <strong>실제 결제 시도 단위</strong>입니다. 하나의 Check에 여러 번 결제가 일어날 수 있습니다. 예를 들어 카드 부분결제 후 현금으로 나머지를 내는 경우, Check 1개에 Payment가 2개 생깁니다.</p>
+    <div class="tags">
+      <span class="tag">결제 시도 단위</span><span class="tag">Check와 N:1</span><span class="tag">카드 / 현금 / 기타 수단</span><span class="tag">부분결제 가능</span><span class="tag">Transaction과 1:1</span>
+    </div>
+  </div>
+
+  <div class="card intent">
+    <div class="card-head"><span class="pill">PAYMENT INTENT</span><span class="card-name">페이먼트 인텐트</span></div>
+    <p class="card-desc">손님이 태블릿에서 <strong>결제 버튼을 누른 순간 생성되는 결제 시도 기록</strong>입니다. 실제 카드 승인(Payment)이 완료되기 전까지의 과정을 추적합니다. 결제 실패나 이중 청구 문제 발생 시 원인 추적에 활용합니다.</p>
+    <div class="tags">
+      <span class="tag">결제 버튼 누름 시 생성</span><span class="tag">만료 시간 존재</span><span class="tag">실패 reason / detail 포함</span><span class="tag">PENDING → SUCCESS / FAILED / EXPIRED</span>
+    </div>
+  </div>
+
+  <div class="card txn">
+    <div class="card-head"><span class="pill">TRANSACTION</span><span class="card-name">트랜잭션</span></div>
+    <p class="card-desc"><strong>카드 네트워크와 실제로 통신한 기록</strong>입니다. Payment 1개당 Transaction 1개가 생성됩니다. Sale(승인), Void(취소), Refund(환불) 등 카드사와 주고받은 모든 통신 행위가 여기에 해당합니다. 현금 결제는 Transaction이 없습니다.</p>
+    <div class="tags">
+      <span class="tag">카드 네트워크 통신 단위</span><span class="tag">Payment와 1:1</span><span class="tag">Sale (승인)</span><span class="tag">Void (취소)</span><span class="tag">Refund (환불)</span><span class="tag">Auth / Capture</span>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- 2. 관계 구조 -->
+  <h2 class="h2">개념 간 관계</h2>
+  <div class="callout"><span>📐</span><span>각 개념이 어떻게 포함되는지 보여주는 계층 구조입니다. Payment Intent는 Session과 연결되지만 결제 흐름(Payment)과는 별도의 레이어입니다.</span></div>
+
+  <div class="flow">
+    <div class="flow-row">
+      <div class="flow-node session">
+        <div><div class="flow-label">Order Session</div><div class="flow-sub">식사 전체 맥락</div></div>
+        <span class="flow-meta">1개</span>
+      </div>
+    </div>
+    <div class="flow-conn" style="padding-left:12px;"><div class="flow-conn-line"></div><span class="flow-conn-lbl">1:1</span></div>
+    <div class="flow-row"><div style="width:20px;flex-shrink:0"></div>
+      <div class="flow-node order">
+        <div><div class="flow-label">Order</div><div class="flow-sub">금액 전체 관리</div></div>
+        <span class="flow-meta">1개</span>
+      </div>
+    </div>
+    <div class="flow-conn" style="padding-left:32px;"><div class="flow-conn-line"></div><span class="flow-conn-lbl">1:N (주문할 때마다)</span></div>
+    <div class="flow-row"><div style="width:40px;flex-shrink:0"></div>
+      <div class="flow-node ticket">
+        <div><div class="flow-label">Order Ticket</div><div class="flow-sub">한 번의 주문 묶음 (KDS 출력)</div></div>
+        <span class="flow-meta">여러 개</span>
+      </div>
+    </div>
+    <div class="flow-conn" style="padding-left:52px;"><div class="flow-conn-line"></div><span class="flow-conn-lbl">1:N (최소 1개 필수)</span></div>
+    <div class="flow-row"><div style="width:60px;flex-shrink:0"></div>
+      <div class="flow-node check">
+        <div><div class="flow-label">Check</div><div class="flow-sub">청구 단위 (가격·세금 확정)</div></div>
+        <span class="flow-meta">1개 이상 필수</span>
+      </div>
+    </div>
+    <div class="flow-conn" style="padding-left:72px;"><div class="flow-conn-line"></div><span class="flow-conn-lbl">1:N (결제 수단별)</span></div>
+    <div class="flow-row"><div style="width:80px;flex-shrink:0"></div>
+      <div class="flow-node payment">
+        <div><div class="flow-label">Payment</div><div class="flow-sub">결제 시도 단위 (카드·현금 등)</div></div>
+        <span class="flow-meta">N개 가능</span>
+      </div>
+    </div>
+    <div class="flow-conn" style="padding-left:92px;"><div class="flow-conn-line"></div><span class="flow-conn-lbl">1:1</span></div>
+    <div class="flow-row"><div style="width:100px;flex-shrink:0"></div>
+      <div class="flow-node txn">
+        <div><div class="flow-label">Transaction</div><div class="flow-sub">카드 네트워크 통신 기록</div></div>
+        <span class="flow-meta">1:1</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:12px;padding:10px 14px;background:var(--intent-bg);border:1px solid var(--intent-tag);border-radius:var(--radius);font-size:12px;color:var(--intent);display:flex;gap:8px;align-items:flex-start;">
+    <span>ℹ️</span>
+    <span><strong>Payment Intent</strong>는 Session에 연결되며 결제 버튼을 누를 때마다 생성됩니다. Payment(실제 승인)와는 별도 레이어로, 결제 시도 이력 추적 용도입니다.</span>
+  </div>
+
+  <hr class="divider">
+
+  <!-- 3. 상태값 참조 -->
+  <h2 class="h2">상태값 참조</h2>
+
+  <p class="status-section-label">Order Session Status</p>
+  <div class="status-list" style="margin-bottom:20px;">
+    <div class="status-row">
+      <span class="sbadge" style="background:#e8f5e9;color:#2e7d32;">OPEN</span>
+      <span class="status-desc">세션이 생성되었으나 아직 주문이 없는 초기 상태입니다.</span>
+    </div>
+    <div class="status-row">
+      <span class="sbadge" style="background:#e3f2fd;color:#1565c0;">SEATED</span>
+      <span class="status-desc">착석이 확인된 상태. 태블릿에서 인원 수 선택 완료 후 진입합니다.</span>
+    </div>
+    <div class="status-row">
+      <span class="sbadge" style="background:#f3e5f5;color:#6a1b9a;">ORDERED</span>
+      <span class="status-desc">최초 Order Ticket이 접수된 상태. 주방에 주문이 전달되었습니다.</span>
+    </div>
+    <div class="status-row">
+      <span class="sbadge" style="background:#e8f5e9;color:#1b5e20;">CONFIRMED_ALL</span>
+      <span class="status-desc">모든 Order Ticket이 주방에서 확인(confirm)된 상태입니다.</span>
+    </div>
+    <div class="status-row">
+      <span class="sbadge" style="background:#fff3e0;color:#e65100;">CHECK_REQUESTED</span>
+      <span class="status-desc">손님이 태블릿에서 <strong>결제 요청</strong>을 누른 상태. 아직 결제 완료 전입니다.</span>
+    </div>
+    <div class="status-row">
+      <span class="sbadge" style="background:#ffebee;color:#b71c1c;">POS_INTEGRATION_FAILED</span>
+      <span class="status-desc">POS 연동 처리 중 오류가 발생한 상태. 운영팀 확인이 필요합니다.</span>
+    </div>
+    <div class="status-row">
+      <span class="sbadge" style="background:#f5f5f5;color:#424242;">CLOSED</span>
+      <span class="status-desc">모든 결제가 완료되어 세션이 정상 종료된 상태입니다.</span>
+    </div>
+    <div class="status-row">
+      <span class="sbadge" style="background:#ffebee;color:#c62828;">CANCELLED</span>
+      <span class="status-desc">세션이 취소된 상태. 주문 없이 이탈하거나 관리자가 취소한 경우입니다.</span>
+    </div>
+  </div>
+
+  <p class="status-section-label">Check Status</p>
+  <div class="status-list" style="margin-bottom:20px;">
+    <div class="status-row">
+      <span class="sbadge" style="background:#fff8e1;color:#f57f17;">OPEN</span>
+      <span class="status-desc">아직 결제가 완료되지 않은 열린 Check입니다. 결제 진행 중이거나 대기 중입니다.</span>
+    </div>
+    <div class="status-row">
+      <span class="sbadge" style="background:#e8f5e9;color:#2e7d32;">PAID</span>
+      <span class="status-desc">결제가 완료된 상태. 청구액 전액이 납부되었습니다.</span>
+    </div>
+    <div class="status-row">
+      <span class="sbadge" style="background:#f5f5f5;color:#424242;">CLOSED</span>
+      <span class="status-desc">Check가 최종 닫힌 상태. PAID 후 세션 종료 시 전환됩니다.</span>
+    </div>
+  </div>
+
+  <p class="status-section-label">Payment Intent Status</p>
+  <div class="status-list" style="margin-bottom:0;">
+    <div class="status-row">
+      <span class="sbadge" style="background:#fff8e1;color:#f57f17;">PENDING</span>
+      <span class="status-desc">결제가 진행 중입니다. 아직 완료되지 않았습니다.</span>
+    </div>
+    <div class="status-row">
+      <span class="sbadge" style="background:#e8f5e9;color:#2e7d32;">SUCCESS</span>
+      <span class="status-desc">결제가 성공적으로 완료됐습니다.</span>
+    </div>
+    <div class="status-row">
+      <span class="sbadge" style="background:#ffebee;color:#c62828;">FAILED</span>
+      <span class="status-desc">결제 시도가 실패했습니다. <strong>reason / detail</strong> 필드에서 원인을 확인할 수 있습니다.</span>
+    </div>
+    <div class="status-row">
+      <span class="sbadge" style="background:#f5f5f5;color:#616161;">EXPIRED</span>
+      <span class="status-desc">일정 시간 내 완료되지 않아 자동으로 만료됐습니다.</span>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- 4. 시나리오 -->
+  <h2 class="h2">실제 시나리오</h2>
+  <p style="font-size:13px;color:var(--text-sub);margin-bottom:16px;">4인 테이블에서 두 번 주문하고 각자 계산하는 상황을 따라가 봅니다.</p>
+  <div class="timeline">
+    <div class="tl-item session"><div class="tl-label">Order Session 생성</div><div class="tl-text">3번 테이블 착석 (4명, 매장식사)</div><div class="tl-sub">세션 시작 — 테이블·인원·채널 정보 기록</div></div>
+    <div class="tl-item order"><div class="tl-label">Order 생성</div><div class="tl-text">세션과 함께 자동 생성</div><div class="tl-sub">금액 집계를 위한 Order가 1:1로 생성됨</div></div>
+    <div class="tl-item ticket"><div class="tl-label">Order Ticket #1 생성</div><div class="tl-text">첫 주문 — 파스타 2개, 스테이크 1개, 맥주 3잔</div><div class="tl-sub">KDS에 출력 → 주방에서 조리 시작</div></div>
+    <div class="tl-item ticket"><div class="tl-label">Order Ticket #2 생성</div><div class="tl-text">추가 주문 — 디저트 2개</div><div class="tl-sub">KDS에 새 티켓 출력 → 기존 티켓과 별개로 처리</div></div>
+    <div class="tl-item check"><div class="tl-label">Check #1 생성</div><div class="tl-text">A, B 두 명 분 — 파스타 2개 + 맥주 2잔 + 디저트 1개</div><div class="tl-sub">가격·세금·차지 확정</div></div>
+    <div class="tl-item payment"><div class="tl-label">Payment Intent 생성 → Payment #1 생성</div><div class="tl-text">결제 버튼 누름 → Check #1 전액 카드 결제 — $92.66</div><div class="tl-sub">Intent PENDING → SUCCESS / 결제 수단 확정 → Transaction 생성 트리거</div></div>
+    <div class="tl-item txn"><div class="tl-label">Transaction #1 생성</div><div class="tl-text">Visa 카드사에 SALE 요청 → 승인</div><div class="tl-sub">AUTH: 84F2C1 · 카드 네트워크 통신 완료</div></div>
+    <div class="tl-item check"><div class="tl-label">Check #2 생성</div><div class="tl-text">C, D 두 명 분 — 스테이크 1개 + 맥주 1잔 + 디저트 1개</div><div class="tl-sub">분할 결제 — Payment 2개로 처리</div></div>
+    <div class="tl-item payment"><div class="tl-label">Payment #2 · #3 생성</div><div class="tl-text">카드 $50.00 + 현금 $33.62 (부분결제)</div><div class="tl-sub">현금은 Transaction 없음 (카드 네트워크 통신 불필요)</div></div>
+    <div class="tl-item session"><div class="tl-label">Order Session 종료 (CLOSED)</div><div class="tl-text">모든 Check 결제 완료 → 서버가 세션 닫음</div><div class="tl-sub">테이블 정리, 세션 기록 완료</div></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- 5. Check 구성 요소 -->
+  <h2 class="h2">Check 구성 요소</h2>
+  <p style="font-size:13px;color:var(--text-sub);margin-bottom:4px;">Check는 아이템에 설정된 값에 따라 아래 요소들이 자동으로 계산됩니다.</p>
+  <div class="grid2">
+    <div class="grid-item"><div class="grid-label">💰 가격 (Price)</div><div class="grid-value">아이템 단가 × 수량</div></div>
+    <div class="grid-item"><div class="grid-label">🧮 세금 (Tax)</div><div class="grid-value">아이템별 tax rate 또는 fixed amount 적용</div></div>
+    <div class="grid-item"><div class="grid-label">➕ 서비스차지 (Service Charge)</div><div class="grid-value">자동 부과 서비스 수수료. Gratuity 포함 가능</div></div>
+    <div class="grid-item"><div class="grid-label">📌 서비스피 (Service Fee)</div><div class="grid-value">배달비, 플랫폼 수수료 등 별도 청구 항목</div></div>
+    <div class="grid-item"><div class="grid-label">🏷️ 할인 (Discount)</div><div class="grid-value">쿠폰, 멤버십, 프로모션 적용</div></div>
+    <div class="grid-item"><div class="grid-label">💳 최종 청구액 (Total)</div><div class="grid-value">가격 + 세금 + 서비스차지 + 서비스피 − 할인</div></div>
+  </div>
+  <div class="callout" style="margin-top:12px;">
+    <span>⚠️</span>
+    <span>모든 Order에는 반드시 <strong>Check가 1개 이상</strong> 존재해야 합니다. Check 없이는 결제가 불가능합니다.</span>
+  </div>
+
+  <hr class="divider">
+
+  <!-- 6. 요약 테이블 -->
+  <h2 class="h2">한눈에 비교</h2>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>개념</th><th>핵심 역할</th><th>주요 관계</th><th>실무 비유</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="pill" style="background:var(--session-bg);color:var(--session);">Session</span></td>
+          <td>식사 전체 맥락 저장</td><td>Order와 1:1</td><td>테이블 대장</td>
+        </tr>
+        <tr>
+          <td><span class="pill" style="background:var(--order-bg);color:var(--order);">Order</span></td>
+          <td>금액 전체 집계</td><td>Session과 1:1</td><td>전체 계산서</td>
+        </tr>
+        <tr>
+          <td><span class="pill" style="background:var(--ticket-bg);color:var(--ticket);">Ticket</span></td>
+          <td>주방 주문 전달</td><td>Order에 N개</td><td>주방 영수증</td>
+        </tr>
+        <tr>
+          <td><span class="pill" style="background:var(--check-bg);color:var(--check);">Check</span></td>
+          <td>손님 청구·결제</td><td>Order에 1개 이상 필수</td><td>손님 영수증</td>
+        </tr>
+        <tr>
+          <td><span class="pill" style="background:var(--payment-bg);color:var(--payment);">Payment</span></td>
+          <td>결제 수단별 시도 기록</td><td>Check에 N개</td><td>결제 한 번의 행위</td>
+        </tr>
+        <tr>
+          <td><span class="pill" style="background:var(--intent-bg);color:var(--intent);">P. Intent</span></td>
+          <td>결제 버튼 누름 이벤트 추적</td><td>Session에 N개 / Payment와 별도</td><td>결제 시도 로그</td>
+        </tr>
+        <tr>
+          <td><span class="pill" style="background:var(--txn-bg);color:var(--txn);">Transaction</span></td>
+          <td>카드 네트워크 통신 기록</td><td>Payment와 1:1</td><td>카드사 전표</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="divider">
+
+  <!-- 7. 통합 시각화 -->
+  <h2 class="h2">통합 시각화 — 실제 주문 흐름</h2>
+  <p style="font-size:13px;color:var(--text-sub);margin-bottom:16px;">착석부터 카드 네트워크 통신까지 — 6가지 개념이 함께 동작하는 전체 흐름입니다.</p>
+
+  <div class="svg-box">
+    <svg viewBox="0 0 820 730" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;padding:12px;">
+      <defs>
+        <linearGradient id="gS" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#2383e2;stop-opacity:0.06"/><stop offset="100%" style="stop-color:#2383e2;stop-opacity:0.01"/>
+        </linearGradient>
+        <linearGradient id="gO" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#9065b0;stop-opacity:0.05"/><stop offset="100%" style="stop-color:#9065b0;stop-opacity:0.01"/>
+        </linearGradient>
+        <marker id="mg" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#0f9b6e"/></marker>
+        <marker id="mp" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#c0426c"/></marker>
+        <marker id="mt" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#7d52b6"/></marker>
+        <marker id="mo" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#9065b0"/></marker>
+      </defs>
+
+      <!-- SESSION -->
+      <rect x="8" y="8" width="804" height="712" rx="8" fill="url(#gS)" stroke="#2383e2" stroke-width="1.2" stroke-dasharray="5 3" opacity="0.45"/>
+      <text x="24" y="28" font-family="monospace" font-size="9" font-weight="600" fill="#2383e2" letter-spacing="1.2" opacity="0.75">ORDER SESSION</text>
+      <text x="650" y="28" font-family="sans-serif" font-size="8.5" fill="#2383e2" opacity="0.5">착석 → 퇴석 전체 맥락</text>
+
+      <!-- ORDER -->
+      <rect x="24" y="38" width="772" height="662" rx="7" fill="url(#gO)" stroke="#9065b0" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.35"/>
+      <text x="40" y="56" font-family="monospace" font-size="9" font-weight="600" fill="#9065b0" letter-spacing="1.2" opacity="0.75">ORDER</text>
+      <text x="680" y="56" font-family="sans-serif" font-size="8.5" fill="#9065b0" opacity="0.5">금액 전체 집계</text>
+
+      <text x="46" y="76" font-family="monospace" font-size="8" font-weight="500" fill="#0f9b6e" letter-spacing="0.8" opacity="0.65">ORDER TICKETS</text>
+
+      <rect x="46" y="82" width="194" height="112" rx="6" fill="#e9f6f1" stroke="#0f9b6e" stroke-width="1"/>
+      <text x="60" y="100" font-family="sans-serif" font-size="9.5" font-weight="600" fill="#0f9b6e">Ticket #1</text>
+      <text x="184" y="95" font-family="sans-serif" font-size="8" fill="#0f9b6e" opacity="0.5">19:02</text>
+      <rect x="58" y="106" width="174" height="16" rx="3" fill="rgba(15,155,110,0.07)"/>
+      <text x="66" y="118" font-family="sans-serif" font-size="9.5" fill="#37352f">🍝 파스타 × 2</text>
+      <rect x="58" y="125" width="174" height="16" rx="3" fill="rgba(15,155,110,0.07)"/>
+      <text x="66" y="137" font-family="sans-serif" font-size="9.5" fill="#37352f">🥩 스테이크 × 1</text>
+      <rect x="58" y="144" width="174" height="16" rx="3" fill="rgba(15,155,110,0.07)"/>
+      <text x="66" y="156" font-family="sans-serif" font-size="9.5" fill="#37352f">🍺 맥주 × 3</text>
+      <rect x="58" y="165" width="44" height="13" rx="3" fill="#c6ead9"/>
+      <text x="63" y="175" font-family="monospace" font-size="7.5" fill="#0f9b6e">KDS ✓</text>
+
+      <rect x="258" y="82" width="194" height="112" rx="6" fill="#e9f6f1" stroke="#0f9b6e" stroke-width="1"/>
+      <text x="272" y="100" font-family="sans-serif" font-size="9.5" font-weight="600" fill="#0f9b6e">Ticket #2</text>
+      <text x="396" y="95" font-family="sans-serif" font-size="8" fill="#0f9b6e" opacity="0.5">19:48</text>
+      <rect x="270" y="106" width="174" height="16" rx="3" fill="rgba(15,155,110,0.07)"/>
+      <text x="278" y="118" font-family="sans-serif" font-size="9.5" fill="#37352f">🍰 디저트 × 2</text>
+      <rect x="270" y="165" width="44" height="13" rx="3" fill="#c6ead9"/>
+      <text x="275" y="175" font-family="monospace" font-size="7.5" fill="#0f9b6e">KDS ✓</text>
+
+      <rect x="588" y="82" width="184" height="112" rx="6" fill="#f4eef8" stroke="#9065b0" stroke-width="1"/>
+      <text x="602" y="100" font-family="sans-serif" font-size="8.5" fill="#9065b0" font-weight="600">ORDER 합계</text>
+      <text x="602" y="118" font-family="sans-serif" font-size="8.5" fill="#6b6860">Check #1</text>
+      <text x="698" y="118" font-family="monospace" font-size="8.5" fill="#37352f">$92.66</text>
+      <text x="602" y="134" font-family="sans-serif" font-size="8.5" fill="#6b6860">Check #2</text>
+      <text x="698" y="134" font-family="monospace" font-size="8.5" fill="#37352f">$83.62</text>
+      <line x1="602" y1="142" x2="762" y2="142" stroke="#9065b0" stroke-width="0.8" opacity="0.25"/>
+      <text x="602" y="156" font-family="sans-serif" font-size="8.5" font-weight="600" fill="#9065b0">총합</text>
+      <text x="668" y="156" font-family="monospace" font-size="11" font-weight="700" fill="#9065b0">$176.28</text>
+
+      <line x1="40" y1="216" x2="780" y2="216" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="46" y="234" font-family="monospace" font-size="8" font-weight="500" fill="#cb6a24" letter-spacing="0.8" opacity="0.65">CHECKS</text>
+
+      <rect x="46" y="242" width="334" height="140" rx="6" fill="#fdf3eb" stroke="#cb6a24" stroke-width="1.2"/>
+      <text x="62" y="261" font-family="sans-serif" font-size="9.5" font-weight="600" fill="#cb6a24">Check #1 — A, B 두 명</text>
+      <text x="62" y="278" font-family="sans-serif" font-size="8.5" fill="#6b6860">파스타×2 · 맥주×2 · 디저트×1</text>
+      <line x1="62" y1="286" x2="368" y2="286" stroke="#e0e0e0" stroke-width="0.8"/>
+      <text x="62" y="300" font-family="sans-serif" font-size="8.5" fill="#9b9a97">소계</text>
+      <text x="296" y="300" font-family="monospace" font-size="8.5" fill="#37352f">$82.00</text>
+      <text x="62" y="314" font-family="sans-serif" font-size="8.5" fill="#9b9a97">세금 + 차지</text>
+      <text x="296" y="314" font-family="monospace" font-size="8.5" fill="#37352f">$10.66</text>
+      <line x1="62" y1="321" x2="368" y2="321" stroke="#cb6a24" stroke-width="0.8" opacity="0.25"/>
+      <text x="62" y="336" font-family="sans-serif" font-size="9.5" font-weight="600" fill="#cb6a24">청구액</text>
+      <text x="274" y="336" font-family="monospace" font-size="11" font-weight="700" fill="#cb6a24">$92.66</text>
+      <rect x="62" y="344" width="46" height="14" rx="3" fill="#c6ead9"/>
+      <text x="67" y="355" font-family="monospace" font-size="7.5" font-weight="600" fill="#0f9b6e">PAID ✓</text>
+
+      <rect x="400" y="242" width="372" height="140" rx="6" fill="#fdf3eb" stroke="#cb6a24" stroke-width="1.2"/>
+      <text x="416" y="261" font-family="sans-serif" font-size="9.5" font-weight="600" fill="#cb6a24">Check #2 — C, D 두 명</text>
+      <text x="416" y="278" font-family="sans-serif" font-size="8.5" fill="#6b6860">스테이크×1 · 맥주×1 · 디저트×1</text>
+      <line x1="416" y1="286" x2="760" y2="286" stroke="#e0e0e0" stroke-width="0.8"/>
+      <text x="416" y="300" font-family="sans-serif" font-size="8.5" fill="#9b9a97">소계</text>
+      <text x="678" y="300" font-family="monospace" font-size="8.5" fill="#37352f">$74.00</text>
+      <text x="416" y="314" font-family="sans-serif" font-size="8.5" fill="#9b9a97">세금 + 차지</text>
+      <text x="678" y="314" font-family="monospace" font-size="8.5" fill="#37352f">$9.62</text>
+      <line x1="416" y1="321" x2="760" y2="321" stroke="#cb6a24" stroke-width="0.8" opacity="0.25"/>
+      <text x="416" y="336" font-family="sans-serif" font-size="9.5" font-weight="600" fill="#cb6a24">청구액</text>
+      <text x="638" y="336" font-family="monospace" font-size="11" font-weight="700" fill="#cb6a24">$83.62</text>
+      <rect x="416" y="344" width="58" height="14" rx="3" fill="#fad7b5"/>
+      <text x="420" y="355" font-family="monospace" font-size="7.5" font-weight="600" fill="#cb6a24">PENDING</text>
+
+      <path d="M143 194 L143 212 L213 212 L213 242" fill="none" stroke="#0f9b6e" stroke-width="1" stroke-dasharray="3 2" opacity="0.35" marker-end="url(#mg)"/>
+      <path d="M194 194 L194 222 L586 222 L586 242" fill="none" stroke="#0f9b6e" stroke-width="1" stroke-dasharray="3 2" opacity="0.2" marker-end="url(#mg)"/>
+      <path d="M318 194 L318 212 L213 212 L213 242" fill="none" stroke="#0f9b6e" stroke-width="1" stroke-dasharray="3 2" opacity="0.2" marker-end="url(#mg)"/>
+      <path d="M356 194 L356 218 L586 218 L586 242" fill="none" stroke="#0f9b6e" stroke-width="1" stroke-dasharray="3 2" opacity="0.35" marker-end="url(#mg)"/>
+      <path d="M681 242 L681 194" fill="none" stroke="#9065b0" stroke-width="1" stroke-dasharray="3 2" opacity="0.3" marker-end="url(#mo)"/>
+
+      <line x1="40" y1="402" x2="780" y2="402" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="46" y="420" font-family="monospace" font-size="8" font-weight="500" fill="#c0426c" letter-spacing="0.8" opacity="0.65">PAYMENTS  ← Check 1개에 N개 가능</text>
+
+      <rect x="46" y="428" width="156" height="92" rx="6" fill="#fdf0f4" stroke="#c0426c" stroke-width="1"/>
+      <text x="60" y="446" font-family="sans-serif" font-size="9" font-weight="600" fill="#c0426c">Payment #1</text>
+      <text x="60" y="462" font-family="sans-serif" font-size="8.5" fill="#6b6860">Check #1 · 카드</text>
+      <text x="60" y="476" font-family="monospace" font-size="9" fill="#37352f">$92.66</text>
+      <rect x="60" y="484" width="52" height="13" rx="3" fill="#c6ead9"/>
+      <text x="64" y="494" font-family="monospace" font-size="7.5" fill="#0f9b6e">APPROVED</text>
+
+      <rect x="218" y="428" width="156" height="92" rx="6" fill="#fdf0f4" stroke="#c0426c" stroke-width="1"/>
+      <text x="232" y="446" font-family="sans-serif" font-size="9" font-weight="600" fill="#c0426c">Payment #2</text>
+      <text x="232" y="462" font-family="sans-serif" font-size="8.5" fill="#6b6860">Check #2 · 카드</text>
+      <text x="232" y="476" font-family="monospace" font-size="9" fill="#37352f">$50.00</text>
+      <rect x="232" y="484" width="52" height="13" rx="3" fill="#c6ead9"/>
+      <text x="236" y="494" font-family="monospace" font-size="7.5" fill="#0f9b6e">APPROVED</text>
+
+      <rect x="390" y="428" width="156" height="92" rx="6" fill="#fdf0f4" stroke="#c0426c" stroke-width="1"/>
+      <text x="404" y="446" font-family="sans-serif" font-size="9" font-weight="600" fill="#c0426c">Payment #3</text>
+      <text x="404" y="462" font-family="sans-serif" font-size="8.5" fill="#6b6860">Check #2 · 현금</text>
+      <text x="404" y="476" font-family="monospace" font-size="9" fill="#37352f">$33.62</text>
+      <rect x="404" y="484" width="52" height="13" rx="3" fill="#fad7b5"/>
+      <text x="408" y="494" font-family="monospace" font-size="7.5" fill="#cb6a24">PENDING</text>
+
+      <path d="M213 382 L213 402 L124 402 L124 428" fill="none" stroke="#c0426c" stroke-width="1" stroke-dasharray="3 2" opacity="0.35" marker-end="url(#mp)"/>
+      <path d="M586 382 L586 410 L296 410 L296 428" fill="none" stroke="#c0426c" stroke-width="1" stroke-dasharray="3 2" opacity="0.35" marker-end="url(#mp)"/>
+      <path d="M638 382 L638 410 L468 410 L468 428" fill="none" stroke="#c0426c" stroke-width="1" stroke-dasharray="3 2" opacity="0.25" marker-end="url(#mp)"/>
+
+      <line x1="40" y1="540" x2="780" y2="540" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="46" y="558" font-family="monospace" font-size="8" font-weight="500" fill="#7d52b6" letter-spacing="0.8" opacity="0.65">TRANSACTIONS  ← Payment 1개당 1개 · 카드 네트워크 통신</text>
+
+      <rect x="46" y="566" width="156" height="108" rx="6" fill="#f2eefb" stroke="#7d52b6" stroke-width="1"/>
+      <text x="60" y="584" font-family="sans-serif" font-size="9" font-weight="600" fill="#7d52b6">Transaction #1</text>
+      <rect x="60" y="590" width="30" height="13" rx="3" fill="#c6ead9"/>
+      <text x="63" y="600" font-family="monospace" font-size="7.5" fill="#0f9b6e">SALE</text>
+      <text x="96" y="600" font-family="sans-serif" font-size="8" fill="#6b6860">승인</text>
+      <text x="60" y="616" font-family="monospace" font-size="8.5" fill="#37352f">$92.66</text>
+      <text x="60" y="630" font-family="sans-serif" font-size="8" fill="#6b6860">Visa ****4242</text>
+      <text x="60" y="644" font-family="sans-serif" font-size="7.5" fill="#9b9a97">AUTH: 84F2C1</text>
+      <text x="60" y="657" font-family="sans-serif" font-size="7.5" fill="#9b9a97">20:15</text>
+
+      <rect x="218" y="566" width="156" height="108" rx="6" fill="#f2eefb" stroke="#7d52b6" stroke-width="1"/>
+      <text x="232" y="584" font-family="sans-serif" font-size="9" font-weight="600" fill="#7d52b6">Transaction #2</text>
+      <rect x="232" y="590" width="30" height="13" rx="3" fill="#c6ead9"/>
+      <text x="235" y="600" font-family="monospace" font-size="7.5" fill="#0f9b6e">SALE</text>
+      <text x="268" y="600" font-family="sans-serif" font-size="8" fill="#6b6860">승인</text>
+      <text x="232" y="616" font-family="monospace" font-size="8.5" fill="#37352f">$50.00</text>
+      <text x="232" y="630" font-family="sans-serif" font-size="8" fill="#6b6860">Mastercard ****8811</text>
+      <text x="232" y="644" font-family="sans-serif" font-size="7.5" fill="#9b9a97">AUTH: 29A7D3</text>
+
+      <rect x="390" y="566" width="156" height="108" rx="6" fill="rgba(242,238,251,0.45)" stroke="#7d52b6" stroke-width="1" stroke-dasharray="4 2"/>
+      <text x="404" y="584" font-family="sans-serif" font-size="9" font-weight="600" fill="#7d52b6" opacity="0.55">Transaction #3</text>
+      <rect x="404" y="590" width="38" height="13" rx="3" fill="#fad7b5"/>
+      <text x="407" y="600" font-family="monospace" font-size="7.5" fill="#cb6a24">CASH</text>
+      <text x="404" y="616" font-family="monospace" font-size="8.5" fill="#37352f" opacity="0.55">$33.62</text>
+      <text x="404" y="632" font-family="sans-serif" font-size="8" fill="#9b9a97">현금 결제</text>
+      <text x="404" y="646" font-family="sans-serif" font-size="8" fill="#9b9a97">네트워크 통신 없음</text>
+
+      <rect x="564" y="566" width="208" height="108" rx="6" fill="#f2eefb" stroke="#7d52b6" stroke-width="1"/>
+      <text x="578" y="584" font-family="sans-serif" font-size="8.5" font-weight="600" fill="#7d52b6">Transaction 유형</text>
+      <rect x="578" y="590" width="30" height="13" rx="3" fill="#c6ead9"/>
+      <text x="581" y="600" font-family="monospace" font-size="7.5" fill="#0f9b6e">SALE</text>
+      <text x="615" y="600" font-family="sans-serif" font-size="8" fill="#6b6860">정상 승인</text>
+      <rect x="578" y="608" width="30" height="13" rx="3" fill="rgba(220,38,38,0.1)"/>
+      <text x="581" y="618" font-family="monospace" font-size="7.5" fill="#dc2626">VOID</text>
+      <text x="615" y="618" font-family="sans-serif" font-size="8" fill="#6b6860">승인 취소</text>
+      <rect x="578" y="626" width="46" height="13" rx="3" fill="#fad7b5"/>
+      <text x="581" y="636" font-family="monospace" font-size="7.5" fill="#cb6a24">REFUND</text>
+      <text x="630" y="636" font-family="sans-serif" font-size="8" fill="#6b6860">환불</text>
+      <rect x="578" y="644" width="30" height="13" rx="3" fill="#ddd0f5"/>
+      <text x="581" y="654" font-family="monospace" font-size="7.5" fill="#7d52b6">AUTH</text>
+      <text x="615" y="654" font-family="sans-serif" font-size="8" fill="#6b6860">사전 승인</text>
+
+      <path d="M124 520 L124 540 L124 566" fill="none" stroke="#7d52b6" stroke-width="1" stroke-dasharray="3 2" opacity="0.35" marker-end="url(#mt)"/>
+      <path d="M296 520 L296 540 L296 566" fill="none" stroke="#7d52b6" stroke-width="1" stroke-dasharray="3 2" opacity="0.35" marker-end="url(#mt)"/>
+      <path d="M468 520 L468 540 L468 566" fill="none" stroke="#7d52b6" stroke-width="1" stroke-dasharray="3 2" opacity="0.25" marker-end="url(#mt)"/>
+    </svg>
+
+    <div class="svg-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#eaf3fc;border:1.5px solid #2383e2;"></div>Session</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f4eef8;border:1.5px solid #9065b0;"></div>Order</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#e9f6f1;border:1.5px solid #0f9b6e;"></div>Ticket</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fdf3eb;border:1.5px solid #cb6a24;"></div>Check</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fdf0f4;border:1.5px solid #c0426c;"></div>Payment</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f2eefb;border:1.5px solid #7d52b6;"></div>Transaction</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
