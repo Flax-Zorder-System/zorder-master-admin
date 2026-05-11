@@ -258,27 +258,58 @@ function PaymentsTable({ payments, timezone, storeId }: { payments: CheckPayment
 }
 
 // ── Split Checks table ────────────────────────────────────────
-function SplitChecksTable({ checks, storeId }: { checks: MasterCheckSummary[]; storeId: string }) {
+const SPLIT_HEAD = { fontWeight: 700, fontSize: 12, bgcolor: 'grey.50' } as const;
+
+function SplitChecksTable({ checks, storeId, rootCheck }: { checks: MasterCheckSummary[]; storeId: string; rootCheck: CheckDetail }) {
   const { timezone } = useTimezone();
   const fmt = (dollar: string) => `$${dollar}`;
+  const ROOT_BG = '#e8f4fd';
+
   return (
     <Table size="small">
       <TableHead>
         <TableRow>
-          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50' }}>check id</TableCell>
-          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', width: 80 }}>status</TableCell>
-          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 80 }}>subtotal</TableCell>
-          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 70 }}>tax</TableCell>
-          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 80 }}>svc charge</TableCell>
-          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 70 }}>gratuity</TableCell>
-          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 70 }}>svc fee</TableCell>
-          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 70 }}>tip</TableCell>
-          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 80 }}>total</TableCell>
-          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50' }}>createdAt</TableCell>
-          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50' }}>closedAt</TableCell>
+          <TableCell sx={SPLIT_HEAD}>check id</TableCell>
+          <TableCell sx={{ ...SPLIT_HEAD, width: 80 }}>status</TableCell>
+          <TableCell sx={{ ...SPLIT_HEAD, textAlign: 'right', width: 80 }}>subtotal</TableCell>
+          <TableCell sx={{ ...SPLIT_HEAD, textAlign: 'right', width: 70 }}>tax</TableCell>
+          <TableCell sx={{ ...SPLIT_HEAD, textAlign: 'right', width: 80 }}>svc charge</TableCell>
+          <TableCell sx={{ ...SPLIT_HEAD, textAlign: 'right', width: 70 }}>gratuity</TableCell>
+          <TableCell sx={{ ...SPLIT_HEAD, textAlign: 'right', width: 70 }}>svc fee</TableCell>
+          <TableCell sx={{ ...SPLIT_HEAD, textAlign: 'right', width: 70 }}>tip</TableCell>
+          <TableCell sx={{ ...SPLIT_HEAD, textAlign: 'right', width: 80 }}>total</TableCell>
+          <TableCell sx={SPLIT_HEAD}>createdAt</TableCell>
+          <TableCell sx={SPLIT_HEAD}>closedAt</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
+        {/* Root check row */}
+        <TableRow sx={{ bgcolor: ROOT_BG, cursor: 'default' }}>
+          <TableCell sx={{ fontSize: 11, fontFamily: 'monospace' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              {rootCheck.id}
+              <Typography variant="caption" sx={{ px: 0.6, py: 0.1, borderRadius: 0.5, bgcolor: '#1565c0', color: '#fff', fontWeight: 700, fontSize: 10 }}>
+                root
+              </Typography>
+            </Box>
+          </TableCell>
+          <TableCell>
+            <Typography variant="caption" sx={{ px: 0.75, py: 0.2, borderRadius: 0.5, fontWeight: 600, bgcolor: STATUS_BG[rootCheck.status] ?? '#f5f5f5', color: STATUS_COLOR[rootCheck.status] ?? '#616161' }}>
+              {rootCheck.status}
+            </Typography>
+          </TableCell>
+          <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{fmt(rootCheck.subtotalDollar)}</TableCell>
+          <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{rootCheck.taxAmount > 0 ? fmt(rootCheck.taxAmountDollar) : '—'}</TableCell>
+          <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{rootCheck.serviceChargeAmount > 0 ? fmt(rootCheck.serviceChargeAmountDollar) : '—'}</TableCell>
+          <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{rootCheck.gratuityAmount > 0 ? fmt(rootCheck.gratuityAmountDollar) : '—'}</TableCell>
+          <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{rootCheck.serviceFeeAmount > 0 ? fmt(rootCheck.serviceFeeAmountDollar) : '—'}</TableCell>
+          <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{rootCheck.tipAmount > 0 ? fmt(rootCheck.tipAmountDollar) : '—'}</TableCell>
+          <TableCell sx={{ fontSize: 12, textAlign: 'right', fontWeight: 700 }}>{fmt(rootCheck.totalAmountDollar)}</TableCell>
+          <TableCell sx={{ fontSize: 12, whiteSpace: 'nowrap' }}>{formatWithTimezone(rootCheck.createAt, timezone)}</TableCell>
+          <TableCell sx={{ fontSize: 12, whiteSpace: 'nowrap' }}>{rootCheck.closedAt ? formatWithTimezone(rootCheck.closedAt, timezone) : '—'}</TableCell>
+        </TableRow>
+
+        {/* Child check rows */}
         {checks.map((c) => (
           <TableRow
             key={c.id}
@@ -694,7 +725,7 @@ export default function CheckDetailPage() {
               <HelpOutlineIcon sx={{ fontSize: 14, color: 'text.disabled', cursor: 'default', mt: '1px' }} />
             </Tooltip>
           </Box>
-          <SplitChecksTable checks={childChecks} storeId={storeId!} />
+          <SplitChecksTable checks={childChecks} storeId={storeId!} rootCheck={check} />
         </>
       )}
     </Box>
