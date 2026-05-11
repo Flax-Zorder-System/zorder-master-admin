@@ -83,6 +83,7 @@ function ModifierTableRows({ modifiers, depth = 0 }: { modifiers: CheckModifier[
     <>
       {modifiers.map((m) => (
         <TableRow key={m.id} sx={{ opacity: 0.75 }}>
+          <TableCell sx={CELL} />
           <TableCell sx={{ ...CELL, pl: 2 + depth * 2 }}>
             <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>
               {'└ '}{m.quantity > 1 ? `${m.quantity}× ` : ''}{m.modifierName}
@@ -118,7 +119,10 @@ function CheckItemsTable({ items, timezone }: { items: CheckItem[]; timezone: st
     <Table size="small" sx={{ tableLayout: 'fixed' }}>
       <TableHead>
         <TableRow>
-          <TableCell sx={{ ...HEAD_CELL, width: '35%' }}>
+          <TableCell sx={{ ...HEAD_CELL, width: 100 }}>
+            <HeadWithTip tip="Check Item ID입니다.">checkItemId</HeadWithTip>
+          </TableCell>
+          <TableCell sx={{ ...HEAD_CELL, width: '30%' }}>
             <HeadWithTip tip="메뉴 아이템 이름입니다. 취소(void)된 항목은 흐리게 표시됩니다.">item</HeadWithTip>
           </TableCell>
           <TableCell sx={{ ...HEAD_CELL, textAlign: 'right', width: 70 }}>
@@ -150,6 +154,9 @@ function CheckItemsTable({ items, timezone }: { items: CheckItem[]; timezone: st
                 key={item.id}
                 sx={{ opacity: isDeleted ? 0.45 : 1, '&:hover': { bgcolor: 'grey.50' } }}
               >
+                <TableCell sx={{ ...CELL, fontFamily: 'monospace', fontSize: 11, color: 'text.secondary' }}>
+                  {item.id}
+                </TableCell>
                 <TableCell sx={CELL}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                     <Typography

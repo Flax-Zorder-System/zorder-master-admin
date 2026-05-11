@@ -98,17 +98,17 @@
 
 #### 오더 티켓 히스토리 조회
 
-- GET {{api-server}}/v4/master/orders/stores/:storeId/tickets
+- GET {{api-server}}/v4/stores/:storeId/orders/tickets
 - ../api-server/src/api/orders/v4/controllers/master-orders.controller.ts:18-45
 
 #### 오더 티켓 상세 정보 조회
 
-- GET {{api-server}}/v4/master/orders/stores/:storeId/tickets/:orderTicketId
+- GET {{api-server}}/v4/stores/:storeId/orders/tickets/:orderTicketId
 - ../api-server/src/api/orders/v4/controllers/master-orders.controller.ts:48-72
 
 #### Checks 리스트 조회
 
-- GET {{api-server}}/v4/master/checks/stores/:storeId/checks?startDate=&endDate=&page=1&pageSize=50 
+- GET {{api-server}}/v4/stores/:storeId/checks/checks?startDate=&endDate=&page=1&pageSize=50 
 - ../api-server/src/api/orders/v4/controllers/master-checks.controller.ts
 
 #### Checks 상세 정보 조회
