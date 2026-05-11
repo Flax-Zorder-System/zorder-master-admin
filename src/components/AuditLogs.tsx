@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import { useEffect, useState } from 'react';
 import { formatWithTimezone, useTimezone } from '../contexts/TimezoneContext';
 import { api } from '../lib/api';
@@ -150,6 +151,7 @@ export default function AuditLogs({ storeId }: { storeId: number }) {
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     setLoading(true);
@@ -163,16 +165,21 @@ export default function AuditLogs({ storeId }: { storeId: number }) {
       .then(setLogs)
       .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Failed to load audit logs'))
       .finally(() => setLoading(false));
-  }, [storeId, startDate, endDate]);
+  }, [storeId, startDate, endDate, tick]);
 
   const paged = logs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <Box sx={{ p: 2 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          Audit Logs
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>Audit Logs</Typography>
+          <Tooltip title="새로고침">
+            <IconButton size="small" onClick={() => setTick((t) => t + 1)} disabled={loading}>
+              <RefreshIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <TextField

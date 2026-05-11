@@ -1,6 +1,7 @@
 import {
   Box,
   CircularProgress,
+  IconButton,
   Paper,
   Table,
   TableBody,
@@ -12,6 +13,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import type { OrderSessionSummary } from '../types/orderSession';
@@ -148,6 +150,7 @@ export default function OrderSessions({ storeId }: { storeId: number }) {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
+  const [tick, setTick] = useState(0);
 
   const dateFilter = useDateRangeFilter(() => setPage(0));
 
@@ -167,13 +170,20 @@ export default function OrderSessions({ storeId }: { storeId: number }) {
       })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Failed to load order sessions'))
       .finally(() => setLoading(false));
-  }, [storeId, page, rowsPerPage, dateFilter.startDate, dateFilter.endDate]);
+  }, [storeId, page, rowsPerPage, dateFilter.startDate, dateFilter.endDate, tick]);
 
   return (
     <Box sx={{ p: 2 }}>
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>Order Sessions</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>Order Sessions</Typography>
+          <Tooltip title="새로고침">
+            <IconButton size="small" onClick={() => setTick((t) => t + 1)} disabled={loading}>
+              <RefreshIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
         <DateRangeFilter
           quickRange={dateFilter.quickRange}
           startDate={dateFilter.startDate}
