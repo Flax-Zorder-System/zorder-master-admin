@@ -270,6 +270,8 @@ function SplitChecksTable({ checks, storeId }: { checks: MasterCheckSummary[]; s
           <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 80 }}>subtotal</TableCell>
           <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 70 }}>tax</TableCell>
           <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 80 }}>svc charge</TableCell>
+          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 70 }}>gratuity</TableCell>
+          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 70 }}>svc fee</TableCell>
           <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 70 }}>tip</TableCell>
           <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right', width: 80 }}>total</TableCell>
           <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50' }}>createdAt</TableCell>
@@ -300,6 +302,8 @@ function SplitChecksTable({ checks, storeId }: { checks: MasterCheckSummary[]; s
             <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{fmt(c.subtotalDollar)}</TableCell>
             <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{c.taxAmount > 0 ? fmt(c.taxAmountDollar) : '—'}</TableCell>
             <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{c.serviceChargeAmount > 0 ? fmt(c.serviceChargeAmountDollar) : '—'}</TableCell>
+            <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{c.gratuityAmount > 0 ? fmt(c.gratuityAmountDollar) : '—'}</TableCell>
+            <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{c.serviceFeeAmount > 0 ? fmt(c.serviceFeeAmountDollar) : '—'}</TableCell>
             <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{c.tipAmount > 0 ? fmt(c.tipAmountDollar) : '—'}</TableCell>
             <TableCell sx={{ fontSize: 12, textAlign: 'right', fontWeight: 700 }}>{fmt(c.totalAmountDollar)}</TableCell>
             <TableCell sx={{ fontSize: 12, whiteSpace: 'nowrap' }}>{formatWithTimezone(c.createdAt, timezone)}</TableCell>
