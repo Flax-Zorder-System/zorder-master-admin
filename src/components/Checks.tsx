@@ -86,6 +86,9 @@ function CheckRow({ check, storeId }: { check: MasterCheckSummary; storeId: numb
       <TableCell sx={{ fontSize: 12, whiteSpace: 'nowrap' }}>
         {check.closedAt ? formatWithTimezone(check.closedAt, timezone) : '—'}
       </TableCell>
+      <TableCell sx={{ fontSize: 12, whiteSpace: 'nowrap', color: check.deletedAt ? 'error.main' : 'text.disabled' }}>
+        {check.deletedAt ? formatWithTimezone(check.deletedAt, timezone) : '—'}
+      </TableCell>
     </TableRow>
   );
 }
@@ -173,12 +176,13 @@ export default function Checks({ storeId }: { storeId: number }) {
                   <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', width: 90, textAlign: 'right' }}>total</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50' }}>createdAt</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50' }}>closedAt</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50' }}>deletedAt</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {checks.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={12} sx={{ textAlign: 'center', py: 4, color: 'text.secondary', fontSize: 13 }}>
+                    <TableCell colSpan={13} sx={{ textAlign: 'center', py: 4, color: 'text.secondary', fontSize: 13 }}>
                       No checks found.
                     </TableCell>
                   </TableRow>

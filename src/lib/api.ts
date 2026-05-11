@@ -140,8 +140,8 @@ export const api = {
     return request<MasterChecksResponse>(`/v4/stores/${storeId}/checks${qs ? `?${qs}` : ''}`);
   },
 
-  getCheckDetail: (checkId: string) =>
-    request<CheckDetailResponse>(`/v4/checks/${checkId}`),
+  getCheckDetail: (storeId: number, checkId: string) =>
+    request<CheckDetailResponse>(`/v4/stores/${storeId}/checks/${checkId}`),
 
   getCheckBalance: (checkId: string) =>
     request<CheckBalance>(`/v4/checks/${checkId}/balance`),

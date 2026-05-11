@@ -124,6 +124,7 @@ export interface CheckDetail {
   table: CheckTable | null;
   createAt: string;
   closedAt: string | null;
+  deletedAt: string | null;
 }
 
 export interface CheckDetailResponse {
@@ -169,6 +170,7 @@ export interface MasterCheckSummary {
   totalAmountDollar: string;
   createdAt: string;
   closedAt: string | null;
+  deletedAt: string | null;
 }
 
 export interface ChildChecksResponse {

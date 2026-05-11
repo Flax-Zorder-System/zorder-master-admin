@@ -331,7 +331,7 @@ export default function CheckDetailPage() {
     if (!checkId) return;
     setLoading(true);
     Promise.all([
-      api.getCheckDetail(checkId),
+      api.getCheckDetail(Number(storeId), checkId),
       api.getCheckBalance(checkId),
     ])
       .then(([detailRes, balanceRes]) => {
@@ -563,6 +563,13 @@ export default function CheckDetailPage() {
           {check.contact?.email && <InfoRow label="Email" value={check.contact.email} />}
           <InfoRow label="Created" value={formatWithTimezone(check.createAt, timezone)} />
           <InfoRow label="Closed" value={check.closedAt ? formatWithTimezone(check.closedAt, timezone) : '—'} />
+          <InfoRow
+            label="Deleted"
+            value={check.deletedAt
+              ? <Typography component="span" sx={{ fontSize: 13, color: 'error.main', fontWeight: 600 }}>{formatWithTimezone(check.deletedAt, timezone)}</Typography>
+              : '—'
+            }
+          />
         </Box>
 
         {/* Right: amounts */}
