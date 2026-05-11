@@ -568,29 +568,50 @@ export default function CheckDetailPage() {
         {/* Right: amounts */}
         <Box>
           <SectionTitle>Amount Summary</SectionTitle>
+
+          {/* 합계 */}
           <AmountRow label="Subtotal" value={check.subtotalDollar} />
-          {check.taxes.map((t) => (
-            <AmountRow key={t.id} label={`Tax: ${t.name}`} value={t.totalAmountDollar} />
-          ))}
-          {check.serviceCharges.map((sc) => (
-            <AmountRow
-              key={sc.id}
-              label={`${sc.isGratuity ? 'Gratuity' : 'Svc Charge'}: ${sc.name}`}
-              value={sc.totalAmountDollar}
-            />
-          ))}
-          {check.serviceFees.map((sf) => (
-            <AmountRow key={sf.id} label={`Svc Fee: ${sf.name}`} value={sf.appliedAmountDollar} />
-          ))}
-          {check.tipAmount > 0 && <AmountRow label="Tip" value={check.tipAmountDollar} />}
+          <AmountRow label="Tax" value={check.taxAmountDollar} />
+          <AmountRow label="Service Charge" value={check.serviceChargeAmountDollar} />
+          <AmountRow label="Gratuity" value={check.gratuityAmountDollar} />
+          <AmountRow label="Service Fee" value={check.serviceFeeAmountDollar} />
+          <AmountRow label="Tip" value={check.tipAmountDollar} />
           <Divider sx={{ my: 0.75 }} />
           <AmountRow label="Total" value={check.totalAmountDollar} bold />
-          {check.paidAmount > 0 && <AmountRow label="Paid" value={check.paidAmountDollar} />}
-          {check.balanceAmount > 0 && (
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.4 }}>
-              <Typography sx={{ fontSize: 13, color: 'error.main', fontWeight: 600 }}>Balance due</Typography>
-              <Typography sx={{ fontSize: 13, color: 'error.main', fontWeight: 600 }}>${check.balanceAmountDollar}</Typography>
-            </Box>
+          <AmountRow label="Paid" value={check.paidAmountDollar} />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.4 }}>
+            <Typography sx={{ fontSize: 13, color: check.balanceAmount > 0 ? 'error.main' : 'text.secondary', fontWeight: check.balanceAmount > 0 ? 600 : 400 }}>Balance due</Typography>
+            <Typography sx={{ fontSize: 13, color: check.balanceAmount > 0 ? 'error.main' : 'text.primary', fontWeight: check.balanceAmount > 0 ? 600 : 400 }}>${check.balanceAmountDollar}</Typography>
+          </Box>
+
+          {/* 세부 내역 */}
+          {(check.taxes.length > 0 || check.serviceCharges.length > 0 || check.serviceFees.length > 0) && (
+            <>
+              <Divider sx={{ my: 1 }} />
+              <Typography sx={{ fontSize: 10, fontWeight: 700, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: 0.6, mb: 0.5 }}>
+                세부 내역
+              </Typography>
+              {check.taxes.map((t) => (
+                <Box key={t.id} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.25 }}>
+                  <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>Tax · {t.name}</Typography>
+                  <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>${t.totalAmountDollar}</Typography>
+                </Box>
+              ))}
+              {check.serviceCharges.map((sc) => (
+                <Box key={sc.id} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.25 }}>
+                  <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>
+                    {sc.isGratuity ? 'Gratuity' : 'Svc Charge'} · {sc.name}
+                  </Typography>
+                  <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>${sc.totalAmountDollar}</Typography>
+                </Box>
+              ))}
+              {check.serviceFees.map((sf) => (
+                <Box key={sf.id} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.25 }}>
+                  <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>Svc Fee · {sf.name}</Typography>
+                  <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>${sf.appliedAmountDollar}</Typography>
+                </Box>
+              ))}
+            </>
           )}
         </Box>
       </Box>
