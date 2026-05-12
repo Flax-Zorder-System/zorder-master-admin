@@ -1,7 +1,8 @@
-import { Box, CircularProgress, Collapse, Divider, IconButton, Tooltip, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, Collapse, Divider, IconButton, Tooltip, Typography } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../lib/api';
@@ -247,7 +248,23 @@ export default function PaymentDetailPage() {
         <InfoRow label="Method" value={METHOD_LABEL[payment.method] ?? payment.method} />
         <InfoRow label="Currency" value={payment.currency} />
         {payment.originalPaymentId && (
-          <InfoRow label="Original Payment ID" value={<MonoText>{payment.originalPaymentId}</MonoText>} />
+          <InfoRow
+            label="Original Payment ID"
+            value={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MonoText>{payment.originalPaymentId}</MonoText>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  endIcon={<OpenInNewIcon sx={{ fontSize: 12 }} />}
+                  onClick={() => window.open(`/stores/${storeId}/payments/${payment.originalPaymentId}`, '_blank')}
+                  sx={{ fontSize: 11, textTransform: 'none', py: 0.2, px: 0.75, minWidth: 'unset' }}
+                >
+                  바로가기
+                </Button>
+              </Box>
+            }
+          />
         )}
         {payment.reason && (
           <InfoRow label="Reason" value={payment.reason} />
