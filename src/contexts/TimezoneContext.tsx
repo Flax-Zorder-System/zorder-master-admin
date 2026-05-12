@@ -24,8 +24,18 @@ const TimezoneContext = createContext<TimezoneContextValue>({
   setTimezone: () => {},
 });
 
+function detectDefaultTimezone(): string {
+  try {
+    const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (TIMEZONE_OPTIONS.some((opt) => opt.value === browserTz)) return browserTz;
+  } catch {
+    // ignore
+  }
+  return 'UTC';
+}
+
 export function TimezoneProvider({ children }: { children: React.ReactNode }) {
-  const [timezone, setTimezone] = useState('UTC');
+  const [timezone, setTimezone] = useState(detectDefaultTimezone);
   return (
     <TimezoneContext.Provider value={{ timezone, setTimezone }}>
       {children}

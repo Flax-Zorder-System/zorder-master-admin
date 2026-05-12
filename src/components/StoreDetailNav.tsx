@@ -19,8 +19,9 @@ import RoomServiceIcon from '@mui/icons-material/RoomService';
 import PrintIcon from '@mui/icons-material/Print';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
 
-export type StoreMenu = 'STORE_INFO' | 'STORE_AUDIT' | 'ORDER_TICKETS' | 'ORDER_SESSIONS' | 'CHECK' | 'PRINT_JOB' | 'PAYMENT_INTENT';
+export type StoreMenu = 'STORE_INFO' | 'STORE_AUDIT' | 'ORDER_TICKETS' | 'ORDER_SESSIONS' | 'CHECK' | 'PRINT_JOB' | 'PAYMENT_INTENT' | 'TRANSACTIONS';
 
 export const menuItems: { key: StoreMenu; label: string; icon: React.ReactNode }[] = [
   { key: 'STORE_INFO', label: 'store info', icon: <InfoOutlinedIcon fontSize="small" /> },
@@ -29,6 +30,7 @@ export const menuItems: { key: StoreMenu; label: string; icon: React.ReactNode }
   { key: 'CHECK', label: 'Checks', icon: <ReceiptLongIcon fontSize="small" /> },
   { key: 'PRINT_JOB', label: 'Print jobs', icon: <PrintIcon fontSize="small" /> },
   { key: 'PAYMENT_INTENT', label: 'Payment Intents', icon: <PaymentIcon fontSize="small" /> },
+  { key: 'TRANSACTIONS', label: 'Transactions', icon: <CreditCardIcon fontSize="small" /> },
   { key: 'STORE_AUDIT', label: 'Audit logs', icon: <HistoryIcon fontSize="small" /> },
 ];
 

@@ -12,6 +12,7 @@ import type { PrintJobsResponse } from '../types/printJob';
 import type { OrderSessionDetail, OrderSessionsResponse } from '../types/orderSession';
 import type { PaymentIntentsResponse } from '../types/paymentIntent';
 import type { PaymentDetail } from '../types/payment';
+import type { TransactionDetail, TransactionListResponse } from '../types/transaction';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -193,4 +194,31 @@ export const api = {
 
   getPaymentDetail: (storeId: number, paymentId: string) =>
     request<PaymentDetail>(`/v4/store/${storeId}/payments/${paymentId}/transaction`),
+
+  getTransactions: (
+    storeId: number,
+    params?: {
+      dateRange?: 'today' | 'yesterday' | 'last7days' | 'custom';
+      startDate?: string;
+      endDate?: string;
+      search?: string;
+      tender?: string;
+      cursor?: number;
+      pageSize?: number;
+    }
+  ) => {
+    const query = new URLSearchParams();
+    if (params?.dateRange) query.set('dateRange', params.dateRange);
+    if (params?.startDate) query.set('startDate', params.startDate);
+    if (params?.endDate) query.set('endDate', params.endDate);
+    if (params?.search) query.set('search', params.search);
+    if (params?.tender) query.set('tender', params.tender);
+    if (params?.cursor != null) query.set('cursor', String(params.cursor));
+    if (params?.pageSize != null) query.set('pageSize', String(params.pageSize));
+    const qs = query.toString();
+    return request<TransactionListResponse>(`/v4/store/${storeId}/transactions${qs ? `?${qs}` : ''}`);
+  },
+
+  getTransactionDetail: (storeId: number, transactionId: string) =>
+    request<TransactionDetail>(`/v4/store/${storeId}/transactions/${transactionId}`),
 };
