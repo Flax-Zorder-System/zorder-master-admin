@@ -21,6 +21,7 @@ export interface TransactionDetail {
   signatureUrl: string | null;
   transactedAt: string | null;
   createdAt: string;
+  rawResBody: string | null;
 }
 
 export interface PaymentDetail {
