@@ -11,8 +11,9 @@ import type { OrderTicketDetail, OrderTicketsResponse } from '../types/orderTick
 import type { PrintJobsResponse } from '../types/printJob';
 import type { OrderSessionDetail, OrderSessionsResponse } from '../types/orderSession';
 import type { PaymentIntentsResponse } from '../types/paymentIntent';
-import type { PaymentDetail } from '../types/payment';
+import type { PaymentDetail, PaymentListResponse } from '../types/payment';
 import type { TransactionDetail, TransactionListResponse } from '../types/transaction';
+import type { PublishedSnapshotResponse } from '../types/publishedSnapshot';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -192,6 +193,19 @@ export const api = {
     return request<PaymentIntentsResponse>(`/v4/store/${storeId}/payments/payment-intents${qs ? `?${qs}` : ''}`);
   },
 
+  getPayments: (
+    storeId: number,
+    params?: { startDate?: string; endDate?: string; page?: number; pageSize?: number }
+  ) => {
+    const query = new URLSearchParams();
+    if (params?.startDate) query.set('startDate', params.startDate);
+    if (params?.endDate) query.set('endDate', params.endDate);
+    if (params?.page != null) query.set('page', String(params.page));
+    if (params?.pageSize != null) query.set('pageSize', String(params.pageSize));
+    const qs = query.toString();
+    return request<PaymentListResponse>(`/v4/store/${storeId}/payments${qs ? `?${qs}` : ''}`);
+  },
+
   getPaymentDetail: (storeId: number, paymentId: string) =>
     request<PaymentDetail>(`/v4/store/${storeId}/payments/${paymentId}/transaction`),
 
@@ -221,4 +235,7 @@ export const api = {
 
   getTransactionDetail: (storeId: number, transactionId: string) =>
     request<TransactionDetail>(`/v4/store/${storeId}/transactions/${transactionId}`),
+
+  getPublishedSnapshot: (storeId: number) =>
+    request<PublishedSnapshotResponse>(`/v4/store/${storeId}/menus/published-snapshot`),
 };

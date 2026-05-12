@@ -9,6 +9,8 @@ import OrderSessions from '../components/OrderSessions';
 import PrintJobs from '../components/PrintJobs';
 import PaymentIntents from '../components/PaymentIntents';
 import Transactions from '../components/Transactions';
+import Payments from '../components/Payments';
+import PublishedSnapshot from '../components/PublishedSnapshot';
 import StoreDetailNav, { menuItems, type StoreMenu } from '../components/StoreDetailNav';
 import { api } from '../lib/api';
 import type { StoreAdminDetail } from '../types/api';
@@ -83,7 +85,9 @@ export default function StoreDetailPage() {
         {activeMenu === 'CHECK' && <Checks storeId={store.storeId} />}
         {activeMenu === 'PRINT_JOB' && <PrintJobs storeId={store.storeId} />}
         {activeMenu === 'PAYMENT_INTENT' && <PaymentIntents storeId={store.storeId} />}
+        {activeMenu === 'PAYMENTS' && <Payments storeId={store.storeId} />}
         {activeMenu === 'TRANSACTIONS' && <Transactions storeId={store.storeId} />}
+        {activeMenu === 'PUBLISHED_SNAPSHOT' && <PublishedSnapshot storeId={store.storeId} />}
         {activeMenu === 'STORE_AUDIT' && <AuditLogs storeId={store.storeId} />}
       </Box>
     </Box>

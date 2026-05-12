@@ -29,6 +29,13 @@ const METHOD_LABEL: Record<string, string> = {
   CARD: 'Card', CASH: 'Cash', GIFT_CARD: 'Gift Card', OTHER: 'Other',
 };
 
+const PG_BG: Record<string, string> = {
+  CODEPAY: '#e8f5e9', DATACAPE: '#e3f2fd', STRIPE: '#f3e5f5', SQUARE: '#fff8e1',
+};
+const PG_COLOR: Record<string, string> = {
+  CODEPAY: '#1b5e20', DATACAPE: '#0d47a1', STRIPE: '#4a148c', SQUARE: '#e65100',
+};
+
 // ── 공통 컴포넌트 ──────────────────────────────────────────────
 
 function Badge({ label, bg, color }: { label: string; bg: string; color: string }) {
@@ -178,7 +185,7 @@ export default function PaymentDetailPage() {
   const fmt = (iso: string | null) => iso ? formatWithTimezone(iso, timezone) : null;
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3, bgcolor: 'white', mt: 3 }}>
+    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3, bgcolor: 'white', mt: 5 , mb: 5}}>
 
       {/* Title */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
@@ -191,6 +198,18 @@ export default function PaymentDetailPage() {
         <Typography variant="caption" sx={{ px: 0.75, py: 0.2, borderRadius: 0.5, bgcolor: '#e8eaf6', color: '#283593', fontWeight: 600 }}>
           {METHOD_LABEL[payment.method] ?? payment.method}
         </Typography>
+        {payment.transaction?.pgProvider && (
+          <Typography
+            variant="caption"
+            sx={{
+              px: 0.75, py: 0.2, borderRadius: 0.5, fontWeight: 700, fontSize: 12,
+              bgcolor: PG_BG[payment.transaction.pgProvider] ?? '#f5f5f5',
+              color: PG_COLOR[payment.transaction.pgProvider] ?? '#616161',
+            }}
+          >
+            {payment.transaction.pgProvider}
+          </Typography>
+        )}
       </Box>
       <Typography sx={{ fontSize: 12, fontFamily: 'monospace', color: 'text.secondary', mb: 2 }}>{payment.id}</Typography>
 

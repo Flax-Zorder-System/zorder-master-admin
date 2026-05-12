@@ -1,3 +1,30 @@
+export interface PaymentListItem {
+  id: string;
+  checkId: number;
+  status: string;
+  method: string;
+  amount: number;
+  tipAmount: number | null;
+  taxAmount: number | null;
+  currency: string;
+  transactionId: string | null;
+  originalPaymentId: string | null;
+  reason: string | null;
+  detail: string | null;
+  createdAt: string;
+  paidAt: string | null;
+  voidedAt: string | null;
+  refundedAt: string | null;
+}
+
+export interface PaymentListResponse {
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  items: PaymentListItem[];
+}
+
 export interface TransactionDetail {
   id: string;
   type: string;
