@@ -1,4 +1,7 @@
-import { Box, CircularProgress, Divider, Typography } from '@mui/material';
+import { Box, CircularProgress, Collapse, Divider, IconButton, Tooltip, Typography } from '@mui/material';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../lib/api';
@@ -53,6 +56,76 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
     <Typography sx={{ fontWeight: 700, fontSize: 13, mb: 1, textTransform: 'uppercase', color: 'text.secondary', letterSpacing: 0.5 }}>
       {children}
     </Typography>
+  );
+}
+
+function highlightJson(json: string): React.ReactNode[] {
+  const tokens = json.split(/("(?:\\.|[^"\\])*"(?:\s*:)?|true|false|null|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|[{}[\],])/);
+  return tokens.map((token, i) => {
+    if (!token) return null;
+    let color = '#d4d4d4';
+    if (/^".*":$/.test(token.trim())) color = '#9cdcfe';           // key
+    else if (/^"/.test(token)) color = '#ce9178';                  // string value
+    else if (/^-?\d/.test(token)) color = '#b5cea8';               // number
+    else if (token === 'true' || token === 'false') color = '#569cd6'; // boolean
+    else if (token === 'null') color = '#569cd6';                   // null
+    else if (/^[{}[\],]$/.test(token)) color = '#808080';          // punctuation
+    return <span key={i} style={{ color }}>{token}</span>;
+  });
+}
+
+function RawResBody({ raw }: { raw: string }) {
+  const [open, setOpen] = useState(true);
+  const [copied, setCopied] = useState(false);
+
+  let formatted = raw;
+  let isJson = false;
+  try { formatted = JSON.stringify(JSON.parse(raw), null, 2); isJson = true; } catch { /* not JSON */ }
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(formatted).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+
+  return (
+    <Box sx={{ mt: 1.5 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          Raw Response Body
+        </Typography>
+        <IconButton size="small" onClick={() => setOpen((v) => !v)} sx={{ p: 0.25 }}>
+          {open ? <ExpandLessIcon sx={{ fontSize: 16 }} /> : <ExpandMoreIcon sx={{ fontSize: 16 }} />}
+        </IconButton>
+        <Tooltip title={copied ? 'Copied!' : 'Copy'} placement="right">
+          <IconButton size="small" onClick={handleCopy} sx={{ p: 0.25 }}>
+            <ContentCopyIcon sx={{ fontSize: 14, color: 'text.disabled' }} />
+          </IconButton>
+        </Tooltip>
+      </Box>
+      <Collapse in={open}>
+        <Box
+          component="pre"
+          sx={{
+            mt: 0.75, p: 1.5,
+            bgcolor: '#1e1e1e',
+            borderRadius: 1,
+            fontSize: 11,
+            fontFamily: 'monospace',
+            lineHeight: 1.6,
+            overflowX: 'auto',
+            maxHeight: 480,
+            overflowY: 'auto',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-all',
+            m: 0,
+          }}
+        >
+          {isJson ? highlightJson(formatted) : <span style={{ color: '#d4d4d4' }}>{formatted}</span>}
+        </Box>
+      </Collapse>
+    </Box>
   );
 }
 
@@ -236,6 +309,14 @@ export default function PaymentDetailPage() {
               }
             />
           )}
+          {payment.transaction.rawResBody && (
+            <>
+              <Divider sx={{ my: 1 }} />
+              <RawResBody raw={payment.transaction.rawResBody} />
+            </>
+          )}
+
+          
         </Box>
       )}
     </Box>
