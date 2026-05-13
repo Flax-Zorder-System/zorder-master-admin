@@ -814,8 +814,13 @@ export default function CheckDetailPage() {
                 placement="right"
                 title={
                   <Box sx={{ fontSize: 12, lineHeight: 1.9, p: 0.5 }}>
-                    <Box>· 실제 결제 합산액과 팁 금액 만큼의 차이가 날 수 있습니다.</Box>
-                    <Box>· 이는 정상 케이스이며 이슈가 아닙니다.</Box>
+                    <Box sx={{ fontWeight: 700, mb: 0.25 }}>totalAmount — 팁 제외 청구 합산</Box>
+                    <Box>= subtotal + tax + SC + fee + gratuity − discount</Box>
+                    <Box>· 팁(tip)은 포함되지 않습니다.</Box>
+                    <Box sx={{ mt: 0.5, borderTop: '1px solid rgba(255,255,255,0.2)', pt: 0.5 }}>
+                      <Box sx={{ fontWeight: 700, mb: 0.25 }}>실제 결제 금액</Box>
+                      <Box>= totalAmount + tipAmount</Box>
+                    </Box>
                     <Box sx={{ mt: 0.5, borderTop: '1px solid rgba(255,255,255,0.2)', pt: 0.5 }}>
                       <Box sx={{ fontWeight: 700, mb: 0.25 }}>Percent Tip 계산 기준 (설정에 따라 다름)</Box>
                       <Box>· subtotal 기준: 순수 주문액에서 % 계산</Box>
@@ -829,7 +834,24 @@ export default function CheckDetailPage() {
             </Box>
             <Typography sx={{ fontSize: 14, fontWeight: 700 }}>${check.totalAmountDollar}</Typography>
           </Box>
-          <AmountRow label="Paid" value={check.paidAmountDollar} />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Paid</Typography>
+              <Tooltip
+                arrow
+                placement="right"
+                title={
+                  <Box sx={{ fontSize: 12, lineHeight: 1.9, p: 0.5 }}>
+                    <Box>팁(tip)까지 포함한 실제 결제 금액입니다.</Box>
+                    <Box>= totalAmount + tipAmount</Box>
+                  </Box>
+                }
+              >
+                <HelpOutlineIcon sx={{ fontSize: 14, color: 'text.disabled', cursor: 'help', mt: '1px' }} />
+              </Tooltip>
+            </Box>
+            <Typography sx={{ fontSize: 13 }}>${check.paidAmountDollar}</Typography>
+          </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.4 }}>
             <Typography sx={{ fontSize: 13, color: check.balanceAmount > 0 ? 'error.main' : 'text.secondary', fontWeight: check.balanceAmount > 0 ? 600 : 400 }}>Balance due</Typography>
             <Typography sx={{ fontSize: 13, color: check.balanceAmount > 0 ? 'error.main' : 'text.primary', fontWeight: check.balanceAmount > 0 ? 600 : 400 }}>${check.balanceAmountDollar}</Typography>
