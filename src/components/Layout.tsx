@@ -13,6 +13,7 @@ import Button from '@mui/material/Button';
 import HomeIcon from '@mui/icons-material/Home';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
+import { Calculate as CalculateIcon } from '@mui/icons-material';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { TIMEZONE_OPTIONS, useTimezone } from '../contexts/TimezoneContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -54,6 +55,12 @@ export default function Layout() {
           />
 
           <Box sx={{ flex: 1 }} />
+
+          <Tooltip title="Calculator">
+            <IconButton size="small" onClick={() => navigate('/calculator')}>
+              <CalculateIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
 
           <Tooltip title="Guide">
             <IconButton size="small" onClick={() => navigate('/guide')}>
