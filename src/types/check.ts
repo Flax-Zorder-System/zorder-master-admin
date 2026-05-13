@@ -1,5 +1,21 @@
 // ── Check Detail ──────────────────────────────────────────────
 
+export interface CheckItemTaxEntry {
+  taxId: string | null;
+  name: string;
+  rate: number | null;      // 소수 (e.g. 0.0825 = 8.25%). PERCENT 타입 전용
+  fixedAmount: number | null; // cents. FIXED 타입 전용
+  taxAmount: number;        // cents
+}
+
+export interface CheckServiceChargeTaxEntry {
+  taxId: string | null;
+  name: string;
+  rate: number | null;
+  fixedAmount: number | null;
+  taxAmount: number;        // cents
+}
+
 export interface CheckModifier {
   id: string;
   parentId: string;
@@ -33,6 +49,7 @@ export interface CheckItem {
   inheritedSubtotalAmount: number;
   inheritedSubtotalAmountDollar: string;
   modifiers: CheckModifier[];
+  checkItemTaxes: CheckItemTaxEntry[];
   paidAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -54,6 +71,7 @@ export interface CheckServiceCharge {
   taxAmountDollar: string;
   totalAmount: number;
   totalAmountDollar: string;
+  taxes: CheckServiceChargeTaxEntry[];
 }
 
 export interface CheckServiceFee {

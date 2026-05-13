@@ -15,7 +15,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutlined';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../lib/api';
-import type { CheckBalance, CheckDetail, CheckItem, CheckModifier, CheckPayment, MasterCheckSummary } from '../types/check';
+import type { CheckBalance, CheckDetail, CheckItem, CheckItemTaxEntry, CheckModifier, CheckPayment, CheckServiceChargeTaxEntry, MasterCheckSummary } from '../types/check';
 import { formatWithTimezone, useTimezone } from '../contexts/TimezoneContext';
 import { usePageTitle } from '../hooks/usePageTitle';
 
@@ -75,6 +75,43 @@ function HeadWithTip({ children, tip, align = 'left' }: { children: React.ReactN
         <HelpOutlineIcon sx={{ fontSize: 11, color: 'text.disabled', cursor: 'default', flexShrink: 0 }} />
       </Tooltip>
     </Box>
+  );
+}
+
+function taxRateLabel(entry: CheckItemTaxEntry | CheckServiceChargeTaxEntry): string {
+  if (entry.rate != null) return `${(entry.rate * 100).toFixed(4).replace(/\.?0+$/, '')}%`;
+  if (entry.fixedAmount != null) return `$${(entry.fixedAmount / 100).toFixed(2)} fixed`;
+  return '';
+}
+
+function ItemTaxRows({ taxes }: { taxes: CheckItemTaxEntry[] }) {
+  if (!taxes?.length) return null;
+  return (
+    <>
+      {taxes.map((t, i) => (
+        <TableRow key={t.taxId ?? i} sx={{ bgcolor: '#fffde7' }}>
+          <TableCell sx={CELL} />
+          <TableCell sx={{ ...CELL, pl: 2 }}>
+            <Typography sx={{ fontSize: 11, color: '#b45309' }}>
+              {'└ '}{t.name}
+              {taxRateLabel(t) && (
+                <Typography component="span" sx={{ fontSize: 10, color: 'text.disabled', ml: 0.5 }}>
+                  ({taxRateLabel(t)})
+                </Typography>
+              )}
+            </Typography>
+          </TableCell>
+          <TableCell sx={CELL} />
+          <TableCell sx={CELL} />
+          <TableCell sx={CELL} />
+          <TableCell sx={{ ...CELL, textAlign: 'right' }}>
+            <Typography sx={{ fontSize: 11, color: '#b45309' }}>${(t.taxAmount / 100).toFixed(2)}</Typography>
+          </TableCell>
+          <TableCell sx={CELL} />
+          <TableCell sx={CELL} />
+        </TableRow>
+      ))}
+    </>
   );
 }
 
@@ -193,6 +230,9 @@ function CheckItemsTable({ items, timezone }: { items: CheckItem[]; timezone: st
               </TableRow>
               {item.modifiers?.length > 0 && (
                 <ModifierTableRows modifiers={item.modifiers} />
+              )}
+              {item.checkItemTaxes?.length > 0 && (
+                <ItemTaxRows taxes={item.checkItemTaxes} />
               )}
             </>
           );
@@ -707,11 +747,26 @@ export default function CheckDetailPage() {
                 </Box>
               ))}
               {check.serviceCharges.map((sc) => (
-                <Box key={sc.id} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.25 }}>
-                  <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>
-                    {sc.isGratuity ? 'Gratuity' : 'Svc Charge'} · {sc.name}
-                  </Typography>
-                  <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>${sc.totalAmountDollar}</Typography>
+                <Box key={sc.id}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.25 }}>
+                    <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>
+                      {sc.isGratuity ? 'Gratuity' : 'Svc Charge'} · {sc.name}
+                    </Typography>
+                    <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>${sc.totalAmountDollar}</Typography>
+                  </Box>
+                  {sc.taxes?.map((t, i) => (
+                    <Box key={t.taxId ?? i} sx={{ display: 'flex', justifyContent: 'space-between', pl: 1.5, py: 0.15 }}>
+                      <Typography sx={{ fontSize: 11, color: '#b45309' }}>
+                        └ Tax · {t.name}
+                        {taxRateLabel(t) && (
+                          <Typography component="span" sx={{ fontSize: 10, color: 'text.disabled', ml: 0.5 }}>
+                            ({taxRateLabel(t)})
+                          </Typography>
+                        )}
+                      </Typography>
+                      <Typography sx={{ fontSize: 11, color: '#b45309' }}>${(t.taxAmount / 100).toFixed(2)}</Typography>
+                    </Box>
+                  ))}
                 </Box>
               ))}
               {check.serviceFees.map((sf) => (
