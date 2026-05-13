@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Box,
   CircularProgress,
@@ -120,33 +121,46 @@ function ModifierTableRows({ modifiers, depth = 0 }: { modifiers: CheckModifier[
   return (
     <>
       {modifiers.map((m) => (
-        <TableRow key={m.id} sx={{ opacity: 0.75 }}>
-          <TableCell sx={CELL} />
-          <TableCell sx={{ ...CELL, pl: 2 + depth * 2 }}>
-            <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>
-              {'└ '}{m.quantity > 1 ? `${m.quantity}× ` : ''}{m.modifierName}
-              {m.modifierGroupName && (
-                <Typography component="span" sx={{ fontSize: 10, color: 'text.disabled', ml: 0.5 }}>
-                  ({m.modifierGroupName})
+        <React.Fragment key={m.id}>
+          <TableRow sx={{ opacity: 0.8, bgcolor: depth === 0 ? 'transparent' : '#f9f9f9' }}>
+            <TableCell sx={CELL} />
+            <TableCell sx={{ ...CELL, pl: 2 + depth * 1.5 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.1 }}>
+                <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.4 }}>
+                  {'└ '}{m.modifierName}
                 </Typography>
+                {m.modifierGroupName && (
+                  <Typography sx={{ fontSize: 10, color: 'text.disabled', pl: 1.5, lineHeight: 1.3 }}>
+                    {m.modifierGroupName}
+                  </Typography>
+                )}
+              </Box>
+            </TableCell>
+            <TableCell sx={{ ...CELL, textAlign: 'right', verticalAlign: 'top', pt: 0.75 }}>
+              {m.modifierPrice !== 0 ? (
+                <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>${m.modifierPriceDollar}</Typography>
+              ) : (
+                <Typography sx={{ fontSize: 11, color: 'text.disabled' }}>—</Typography>
               )}
-            </Typography>
-          </TableCell>
-          <TableCell sx={{ ...CELL, textAlign: 'right' }}>
-            {m.modifierPrice !== 0 ? (
-              <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>${m.modifierPriceDollar}</Typography>
-            ) : null}
-          </TableCell>
-          <TableCell sx={CELL} />
-          <TableCell sx={{ ...CELL, textAlign: 'right' }}>
-            {m.lineSubtotalAmount !== 0 && (
-              <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>${m.lineSubtotalAmountDollar}</Typography>
-            )}
-          </TableCell>
-          <TableCell sx={CELL} />
-          <TableCell sx={CELL} />
-          <TableCell sx={CELL} />
-        </TableRow>
+            </TableCell>
+            <TableCell sx={{ ...CELL, textAlign: 'center', verticalAlign: 'top', pt: 0.75 }}>
+              <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>{m.quantity}</Typography>
+            </TableCell>
+            <TableCell sx={{ ...CELL, textAlign: 'right', verticalAlign: 'top', pt: 0.75 }}>
+              {m.lineSubtotalAmount !== 0 ? (
+                <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>${m.lineSubtotalAmountDollar}</Typography>
+              ) : (
+                <Typography sx={{ fontSize: 11, color: 'text.disabled' }}>—</Typography>
+              )}
+            </TableCell>
+            <TableCell sx={CELL} />
+            <TableCell sx={CELL} />
+            <TableCell sx={CELL} />
+          </TableRow>
+          {m.children?.length > 0 && (
+            <ModifierTableRows modifiers={m.children} depth={depth + 1} />
+          )}
+        </React.Fragment>
       ))}
     </>
   );
