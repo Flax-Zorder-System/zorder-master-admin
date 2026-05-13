@@ -65,12 +65,14 @@ export interface CheckTax {
 
 export interface CheckServiceCharge {
   id: string;
-  name: string;
+  /** API 응답에서 name은 serviceCharge.name 안에 있음 */
+  name?: string;
+  serviceCharge?: { name?: string };
   isGratuity: boolean;
+  appliedAmount: number;       // SC 금액 (cents, 세금 미포함)
+  totalAmountDollar: string;   // toDollar(appliedAmount)
   taxAmount: number;
   taxAmountDollar: string;
-  totalAmount: number;
-  totalAmountDollar: string;
   taxes: CheckServiceChargeTaxEntry[];
 }
 
