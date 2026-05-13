@@ -249,6 +249,27 @@ export default function OrderSessions({ storeId }: { storeId: number }) {
           />
         </Paper>
       )}
+
+      {/* 설명 섹션 */}
+      <Box sx={{ mt: 2, p: 2, borderRadius: 1, bgcolor: '#f8f9fa', border: '1px solid', borderColor: 'divider' }}>
+        <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          Order Session 동작 안내
+        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', flexShrink: 0 }}>·</Typography>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+              <strong>키오스크 주문</strong>: 주문 완료 즉시 Order Session이 자동으로 Close됩니다.
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', flexShrink: 0 }}>·</Typography>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+              <strong>Order at the Table</strong>: 식장 서버가 수동으로 Close해야 Order Session이 종료됩니다.
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
     </Box>
   );
 }

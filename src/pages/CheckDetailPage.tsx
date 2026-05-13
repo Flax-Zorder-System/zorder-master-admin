@@ -619,8 +619,44 @@ export default function CheckDetailPage() {
           <SectionTitle>Amount Summary</SectionTitle>
 
           {/* 합계 */}
-          <AmountRow label="Subtotal" value={check.subtotalDollar} />
-          <AmountRow label="Tax" value={check.taxAmountDollar} />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Subtotal</Typography>
+              <Tooltip
+                arrow
+                placement="right"
+                title={
+                  <Box sx={{ fontSize: 12, lineHeight: 1.9, p: 0.5 }}>
+                    <Box>· 주문한 아이템 가격의 순수 합산액입니다.</Box>
+                    <Box>· 세금(Tax), 서비스 차지(Service Charge),</Box>
+                    <Box>{"  "}서비스 피(Service Fee), 팁(Tip) 등은</Box>
+                    <Box>{"  "}포함되지 않은 금액입니다.</Box>
+                  </Box>
+                }
+              >
+                <HelpOutlineIcon sx={{ fontSize: 14, color: 'text.disabled', cursor: 'help', mt: '1px' }} />
+              </Tooltip>
+            </Box>
+            <Typography sx={{ fontSize: 13 }}>${check.subtotalDollar}</Typography>
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Tax</Typography>
+              <Tooltip
+                arrow
+                placement="right"
+                title={
+                  <Box sx={{ fontSize: 12, lineHeight: 1.9, p: 0.5 }}>
+                    <Box>· 아이템에 부과된 세금</Box>
+                    <Box>+ 서비스 차지(Service Charge)에 부과된 세금의 합산액입니다.</Box>
+                  </Box>
+                }
+              >
+                <HelpOutlineIcon sx={{ fontSize: 14, color: 'text.disabled', cursor: 'help', mt: '1px' }} />
+              </Tooltip>
+            </Box>
+            <Typography sx={{ fontSize: 13 }}>${check.taxAmountDollar}</Typography>
+          </Box>
           <AmountRow label="Service Charge" value={check.serviceChargeAmountDollar} />
           <AmountRow label="Gratuity" value={check.gratuityAmountDollar} />
           <AmountRow label="Service Fee" value={check.serviceFeeAmountDollar} />

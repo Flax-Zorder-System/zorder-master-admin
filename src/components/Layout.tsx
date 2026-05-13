@@ -55,8 +55,8 @@ export default function Layout() {
 
           <Box sx={{ flex: 1 }} />
 
-          <Tooltip title="주문 개념 가이드">
-            <IconButton size="small" onClick={() => window.open('/order-concepts.html', '_blank')}>
+          <Tooltip title="Guide">
+            <IconButton size="small" onClick={() => navigate('/guide')}>
               <MenuBookIcon fontSize="small" />
             </IconButton>
           </Tooltip>

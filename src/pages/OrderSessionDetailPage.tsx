@@ -71,7 +71,14 @@ function OrderTicketsTable({ tickets, storeId }: { tickets: OrderTicketBrief[]; 
       <TableHead>
         <TableRow>
           <TableCell sx={{ ...HEAD_CELL, width: '35%' }}>ticket id</TableCell>
-          <TableCell sx={{ ...HEAD_CELL, width: 60 }}>#</TableCell>
+          <TableCell sx={{ ...HEAD_CELL, width: 60 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              #
+              <Tooltip arrow placement="right" title="결제가 완료되지 않은 오더는 번호가 부여되지 않아 — 로 표시됩니다.">
+                <HelpOutlineIcon sx={{ fontSize: 13, color: 'text.disabled', cursor: 'help' }} />
+              </Tooltip>
+            </Box>
+          </TableCell>
           <TableCell sx={{ ...HEAD_CELL, width: 100 }}>channel</TableCell>
           <TableCell sx={{ ...HEAD_CELL, width: 60, textAlign: 'center' }}>read</TableCell>
           <TableCell sx={HEAD_CELL}>createdAt</TableCell>
