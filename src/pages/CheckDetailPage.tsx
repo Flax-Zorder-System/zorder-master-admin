@@ -2,6 +2,7 @@ import {
   Box,
   CircularProgress,
   Divider,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -368,12 +369,13 @@ export default function CheckDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [childChecks, setChildChecks] = useState<MasterCheckSummary[]>([]);
   const [balance, setBalance] = useState<CheckBalance | null>(null);
+  const [groupItems, setGroupItems] = useState(false);
 
   useEffect(() => {
     if (!checkId) return;
     setLoading(true);
     Promise.all([
-      api.getCheckDetail(Number(storeId), checkId),
+      api.getCheckDetail(Number(storeId), checkId, groupItems),
       api.getCheckBalance(checkId),
     ])
       .then(([detailRes, balanceRes]) => {
@@ -387,7 +389,7 @@ export default function CheckDetailPage() {
       })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Failed to load'))
       .finally(() => setLoading(false));
-  }, [checkId, storeId]);
+  }, [checkId, storeId, groupItems]);
 
   if (loading) {
     return (
@@ -726,7 +728,21 @@ export default function CheckDetailPage() {
       <Divider sx={{ mb: 2.5 }} />
 
       {/* Items */}
-      <SectionTitle>Items</SectionTitle>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+        <Typography sx={{ fontWeight: 700, fontSize: 13, textTransform: 'uppercase', color: 'text.secondary', letterSpacing: 0.5 }}>Items</Typography>
+        <Tooltip title="동일 아이템+모디파이어 조합을 하나로 합산하여 표시합니다." arrow placement="left">
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Typography sx={{ fontSize: 12, color: groupItems ? 'primary.main' : 'text.disabled', fontWeight: groupItems ? 600 : 400 }}>
+              Group Items
+            </Typography>
+            <Switch
+              size="small"
+              checked={groupItems}
+              onChange={(e) => setGroupItems(e.target.checked)}
+            />
+          </Box>
+        </Tooltip>
+      </Box>
       {check.checkItems.length === 0 ? (
         <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>No items.</Typography>
       ) : (

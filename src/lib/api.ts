@@ -142,8 +142,10 @@ export const api = {
     return request<MasterChecksResponse>(`/v4/stores/${storeId}/checks${qs ? `?${qs}` : ''}`);
   },
 
-  getCheckDetail: (storeId: number, checkId: string) =>
-    request<CheckDetailResponse>(`/v4/stores/${storeId}/checks/${checkId}`),
+  getCheckDetail: (storeId: number, checkId: string, groupItems?: boolean) => {
+    const qs = groupItems != null ? `?groupItems=${groupItems}` : '';
+    return request<CheckDetailResponse>(`/v4/stores/${storeId}/checks/${checkId}${qs}`);
+  },
 
   getCheckBalance: (checkId: string) =>
     request<CheckBalance>(`/v4/checks/${checkId}/balance`),
