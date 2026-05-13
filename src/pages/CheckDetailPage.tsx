@@ -256,6 +256,94 @@ function CheckItemsTable({ items, timezone }: { items: CheckItem[]; timezone: st
   );
 }
 
+// ── Service Charges table ─────────────────────────────────────
+
+const SC_HEAD = { fontWeight: 700, fontSize: 12, bgcolor: 'grey.50' } as const;
+
+function ServiceChargesTable({ serviceCharges }: { serviceCharges: CheckDetail['serviceCharges'] }) {
+  return (
+    <Table size="small">
+      <TableHead>
+        <TableRow>
+          <TableCell sx={{ ...SC_HEAD, width: '35%' }}>name</TableCell>
+          <TableCell sx={{ ...SC_HEAD, width: 80 }}>gratuity</TableCell>
+          <TableCell sx={{ ...SC_HEAD, textAlign: 'right', width: 90 }}>amount</TableCell>
+          <TableCell sx={{ ...SC_HEAD, textAlign: 'right', width: 80 }}>tax</TableCell>
+          <TableCell sx={{ ...SC_HEAD, textAlign: 'right', width: 90 }}>total</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {serviceCharges.map((sc) => (
+          <React.Fragment key={sc.id}>
+            <TableRow sx={{ '&:hover': { bgcolor: 'grey.50' } }}>
+              <TableCell sx={{ fontSize: 12, fontWeight: 500 }}>{sc.name}</TableCell>
+              <TableCell sx={{ fontSize: 12 }}>
+                {sc.isGratuity ? (
+                  <Typography variant="caption" sx={{ px: 0.75, py: 0.2, borderRadius: 0.5, bgcolor: '#e8eaf6', color: '#283593', fontWeight: 600 }}>
+                    gratuity
+                  </Typography>
+                ) : (
+                  <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>—</Typography>
+                )}
+              </TableCell>
+              <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>${sc.totalAmountDollar}</TableCell>
+              <TableCell sx={{ fontSize: 12, textAlign: 'right', color: sc.taxAmount > 0 ? 'warning.dark' : 'text.disabled' }}>
+                {sc.taxAmount > 0 ? `$${sc.taxAmountDollar}` : '—'}
+              </TableCell>
+              <TableCell sx={{ fontSize: 12, textAlign: 'right', fontWeight: 600 }}>
+                ${((sc.totalAmount + sc.taxAmount) / 100).toFixed(2)}
+              </TableCell>
+            </TableRow>
+            {sc.taxes?.map((t, i) => (
+              <TableRow key={t.taxId ?? i} sx={{ bgcolor: '#fffde7' }}>
+                <TableCell sx={{ ...CELL, pl: 2.5 }}>
+                  <Typography sx={{ fontSize: 11, color: '#b45309' }}>
+                    {'└ '}{t.name}
+                    {taxRateLabel(t) && (
+                      <Typography component="span" sx={{ fontSize: 10, color: 'text.disabled', ml: 0.5 }}>
+                        ({taxRateLabel(t)})
+                      </Typography>
+                    )}
+                  </Typography>
+                </TableCell>
+                <TableCell sx={CELL} />
+                <TableCell sx={CELL} />
+                <TableCell sx={{ ...CELL, textAlign: 'right' }}>
+                  <Typography sx={{ fontSize: 11, color: '#b45309' }}>${(t.taxAmount / 100).toFixed(2)}</Typography>
+                </TableCell>
+                <TableCell sx={CELL} />
+              </TableRow>
+            ))}
+          </React.Fragment>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+// ── Service Fees table ────────────────────────────────────────
+
+function ServiceFeesTable({ serviceFees }: { serviceFees: CheckDetail['serviceFees'] }) {
+  return (
+    <Table size="small">
+      <TableHead>
+        <TableRow>
+          <TableCell sx={{ ...SC_HEAD, width: '50%' }}>name</TableCell>
+          <TableCell sx={{ ...SC_HEAD, textAlign: 'right' }}>amount</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {serviceFees.map((sf) => (
+          <TableRow key={sf.id} sx={{ '&:hover': { bgcolor: 'grey.50' } }}>
+            <TableCell sx={{ fontSize: 12, fontWeight: 500 }}>{sf.name}</TableCell>
+            <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>${sf.appliedAmountDollar}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
 // ── Payments table ────────────────────────────────────────────
 const PAYMENT_STATUS_BG: Record<string, string> = {
   SALE: '#e8f5e9', VOID: '#ffebee', REFUND: '#fff3e0',
@@ -748,7 +836,7 @@ export default function CheckDetailPage() {
           </Box>
 
           {/* 세부 내역 */}
-          {(check.taxes.length > 0 || check.serviceCharges.length > 0 || check.serviceFees.length > 0) && (
+          {check.taxes.length > 0 && (
             <>
               <Divider sx={{ my: 1 }} />
               <Typography sx={{ fontSize: 10, fontWeight: 700, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: 0.6, mb: 0.5 }}>
@@ -761,32 +849,11 @@ export default function CheckDetailPage() {
                 </Box>
               ))}
               {check.serviceCharges.map((sc) => (
-                <Box key={sc.id}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.25 }}>
-                    <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>
-                      {sc.isGratuity ? 'Gratuity' : 'Svc Charge'} · {sc.name}
-                    </Typography>
-                    <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>${sc.totalAmountDollar}</Typography>
-                  </Box>
-                  {sc.taxes?.map((t, i) => (
-                    <Box key={t.taxId ?? i} sx={{ display: 'flex', justifyContent: 'space-between', pl: 1.5, py: 0.15 }}>
-                      <Typography sx={{ fontSize: 11, color: '#b45309' }}>
-                        └ Tax · {t.name}
-                        {taxRateLabel(t) && (
-                          <Typography component="span" sx={{ fontSize: 10, color: 'text.disabled', ml: 0.5 }}>
-                            ({taxRateLabel(t)})
-                          </Typography>
-                        )}
-                      </Typography>
-                      <Typography sx={{ fontSize: 11, color: '#b45309' }}>${(t.taxAmount / 100).toFixed(2)}</Typography>
-                    </Box>
-                  ))}
-                </Box>
-              ))}
-              {check.serviceFees.map((sf) => (
-                <Box key={sf.id} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.25 }}>
-                  <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>Svc Fee · {sf.name}</Typography>
-                  <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>${sf.appliedAmountDollar}</Typography>
+                <Box key={sc.id} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.25 }}>
+                  <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>
+                    {sc.isGratuity ? 'Gratuity' : 'Svc Charge'} · {sc.name}
+                  </Typography>
+                  <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>${sc.totalAmountDollar}</Typography>
                 </Box>
               ))}
             </>
@@ -795,6 +862,28 @@ export default function CheckDetailPage() {
       </Box>
 
       <Divider sx={{ mb: 2.5 }} />
+
+      {/* Service Charges */}
+      {check.serviceCharges.length > 0 && (
+        <>
+          <Typography sx={{ fontWeight: 700, fontSize: 13, textTransform: 'uppercase', color: 'text.secondary', letterSpacing: 0.5, mb: 1 }}>
+            Service Charges
+          </Typography>
+          <ServiceChargesTable serviceCharges={check.serviceCharges} />
+          <Divider sx={{ my: 2.5 }} />
+        </>
+      )}
+
+      {/* Service Fees */}
+      {check.serviceFees.length > 0 && (
+        <>
+          <Typography sx={{ fontWeight: 700, fontSize: 13, textTransform: 'uppercase', color: 'text.secondary', letterSpacing: 0.5, mb: 1 }}>
+            Service Fees
+          </Typography>
+          <ServiceFeesTable serviceFees={check.serviceFees} />
+          <Divider sx={{ my: 2.5 }} />
+        </>
+      )}
 
       {/* Items */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
