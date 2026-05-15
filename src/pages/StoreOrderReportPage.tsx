@@ -132,7 +132,7 @@ export default function StoreOrderReportPage() {
                     align="center"
                     sx={{ fontWeight: 700, fontSize: 11, width: 80, color: 'text.secondary' }}
                   >
-                    {date.slice(5)} {/* MM-DD */}
+                    {date}
                   </TableCell>
                 ))}
                 <TableCell align="center" sx={{ fontWeight: 700, fontSize: 11, width: 64, bgcolor: '#f0f4ff', color: '#1a237e' }}>
