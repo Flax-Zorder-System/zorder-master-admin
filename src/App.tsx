@@ -9,7 +9,7 @@ import OrderSessionDetailPage from './pages/OrderSessionDetailPage';
 import CheckDetailPage from './pages/CheckDetailPage';
 import PaymentDetailPage from './pages/PaymentDetailPage';
 import GuidePage from './pages/GuidePage';
-import CalculatorPage from './pages/CalculatorPage';
+import StoreOrderReportPage from './pages/StoreOrderReportPage';
 import LoginPage from './pages/LoginPage';
 import { TimezoneProvider } from './contexts/TimezoneContext';
 import { AuthProvider } from './contexts/AuthContext';
@@ -54,8 +54,8 @@ export default function App() {
               <Route path="/stores/:id/sessions/:sessionId" element={<OrderSessionDetailPage />} />
               <Route path="/stores/:storeId/checks/:checkId" element={<CheckDetailPage />} />
               <Route path="/stores/:storeId/payments/:paymentId" element={<PaymentDetailPage />} />
+              <Route path="/report/order-count" element={<StoreOrderReportPage />} />
               <Route path="/guide" element={<GuidePage />} />
-              <Route path="/calculator" element={<CalculatorPage />} />
             </Route>
           </Routes>
         </AuthProvider>
