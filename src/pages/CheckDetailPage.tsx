@@ -403,6 +403,9 @@ function PaymentsTable({ payments, timezone, storeId }: { payments: CheckPayment
           <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right' }}>amount</TableCell>
           <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right' }}>tax</TableCell>
           <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right' }}>tip</TableCell>
+          <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', textAlign: 'right' }}>
+            <HeadWithTip tip="amount + tax (tip 제외)" align="right">total</HeadWithTip>
+          </TableCell>
           <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50' }}>paidAt</TableCell>
         </TableRow>
       </TableHead>
@@ -430,6 +433,9 @@ function PaymentsTable({ payments, timezone, storeId }: { payments: CheckPayment
             <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>${p.amountDollar}</TableCell>
             <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{p.tax > 0 ? `$${p.taxDollar}` : '—'}</TableCell>
             <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{p.tip > 0 ? `$${p.tipDollar}` : '—'}</TableCell>
+            <TableCell sx={{ fontSize: 12, textAlign: 'right', fontWeight: 600 }}>
+              ${((p.amount + p.tax) / 100).toFixed(2)}
+            </TableCell>
             <TableCell sx={{ fontSize: 12, whiteSpace: 'nowrap' }}>
               {p.paidAt ? formatWithTimezone(p.paidAt, timezone) : '—'}
             </TableCell>
