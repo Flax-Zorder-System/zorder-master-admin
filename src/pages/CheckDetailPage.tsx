@@ -16,7 +16,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutlined';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../lib/api';
-import type { CheckBalance, CheckDetail, CheckItem, CheckItemTaxEntry, CheckModifier, CheckPayment, CheckServiceChargeTaxEntry, MasterCheckSummary } from '../types/check';
+import type { CheckBalance, CheckDetail, CheckItem, CheckModifier, CheckPayment, CheckServiceChargeTaxEntry, MasterCheckSummary } from '../types/check';
 import { formatWithTimezone, useTimezone } from '../contexts/TimezoneContext';
 import { usePageTitle } from '../hooks/usePageTitle';
 
@@ -79,41 +79,16 @@ function HeadWithTip({ children, tip, align = 'left' }: { children: React.ReactN
   );
 }
 
-function taxRateLabel(entry: CheckItemTaxEntry | CheckServiceChargeTaxEntry): string {
-  if (entry.rate != null) return `${(entry.rate * 100).toFixed(4).replace(/\.?0+$/, '')}%`;
-  if (entry.fixedAmount != null) return `$${(entry.fixedAmount / 100).toFixed(2)} fixed`;
+function scTaxRateLabel(t: CheckServiceChargeTaxEntry): string {
+  if (t.type === 'PERCENT' && t.rate != null) return `${(t.rate * 100).toFixed(4).replace(/\.?0+$/, '')}%`;
+  if (t.type === 'FIXED' && t.fixedAmount != null) return `$${(t.fixedAmount / 100).toFixed(2)} fixed`;
   return '';
 }
 
-function ItemTaxRows({ taxes }: { taxes: CheckItemTaxEntry[] }) {
-  if (!taxes?.length) return null;
-  return (
-    <>
-      {taxes.map((t, i) => (
-        <TableRow key={t.taxId ?? i} sx={{ bgcolor: '#fffde7' }}>
-          <TableCell sx={CELL} />
-          <TableCell sx={{ ...CELL, pl: 2 }}>
-            <Typography sx={{ fontSize: 11, color: '#b45309' }}>
-              {'└ '}{t.name}
-              {taxRateLabel(t) && (
-                <Typography component="span" sx={{ fontSize: 10, color: 'text.disabled', ml: 0.5 }}>
-                  ({taxRateLabel(t)})
-                </Typography>
-              )}
-            </Typography>
-          </TableCell>
-          <TableCell sx={CELL} />
-          <TableCell sx={CELL} />
-          <TableCell sx={CELL} />
-          <TableCell sx={{ ...CELL, textAlign: 'right' }}>
-            <Typography sx={{ fontSize: 11, color: '#b45309' }}>${(t.taxAmount / 100).toFixed(2)}</Typography>
-          </TableCell>
-          <TableCell sx={CELL} />
-          <TableCell sx={CELL} />
-        </TableRow>
-      ))}
-    </>
-  );
+function scRateLabel(rate: number, chargeType: string, fixedAmount: number | null): string {
+  if (chargeType === 'PERCENT') return `${(rate * 100).toFixed(4).replace(/\.?0+$/, '')}%`;
+  if (chargeType === 'FIXED_AMOUNT' && fixedAmount != null) return `$${(fixedAmount / 100).toFixed(2)} fixed`;
+  return '';
 }
 
 function ModifierTableRows({ modifiers, depth = 0 }: { modifiers: CheckModifier[]; depth?: number }) {
@@ -245,9 +220,6 @@ function CheckItemsTable({ items, timezone }: { items: CheckItem[]; timezone: st
               {item.modifiers?.length > 0 && (
                 <ModifierTableRows modifiers={item.modifiers} />
               )}
-              {item.checkItemTaxes?.length > 0 && (
-                <ItemTaxRows taxes={item.checkItemTaxes} />
-              )}
             </>
           );
         })}
@@ -265,57 +237,103 @@ function ServiceChargesTable({ serviceCharges }: { serviceCharges: CheckDetail['
     <Table size="small">
       <TableHead>
         <TableRow>
-          <TableCell sx={{ ...SC_HEAD, width: '35%' }}>name</TableCell>
+          <TableCell sx={{ ...SC_HEAD, width: '40%' }}>
+            <HeadWithTip tip="주문 시점 스냅샷 이름. chargeType · rate · minCheckAmount 정보를 함께 표시합니다.">name / snapshot</HeadWithTip>
+          </TableCell>
           <TableCell sx={{ ...SC_HEAD, width: 80 }}>gratuity</TableCell>
-          <TableCell sx={{ ...SC_HEAD, textAlign: 'right', width: 90 }}>amount</TableCell>
-          <TableCell sx={{ ...SC_HEAD, textAlign: 'right', width: 80 }}>tax</TableCell>
-          <TableCell sx={{ ...SC_HEAD, textAlign: 'right', width: 90 }}>total</TableCell>
+          <TableCell sx={{ ...SC_HEAD, textAlign: 'right', width: 90 }}>
+            <HeadWithTip tip="세금 미포함 SC 적용 금액 (appliedAmount)" align="right">amount</HeadWithTip>
+          </TableCell>
+          <TableCell sx={{ ...SC_HEAD, textAlign: 'right', width: 80 }}>
+            <HeadWithTip tip="이 SC에 부과된 세금 합계" align="right">tax</HeadWithTip>
+          </TableCell>
+          <TableCell sx={{ ...SC_HEAD, textAlign: 'right', width: 90 }}>
+            <HeadWithTip tip="amount + tax" align="right">total</HeadWithTip>
+          </TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
-        {serviceCharges.map((sc) => (
-          <React.Fragment key={sc.id}>
-            <TableRow sx={{ '&:hover': { bgcolor: 'grey.50' } }}>
-              <TableCell sx={{ fontSize: 12, fontWeight: 500 }}>{sc.serviceCharge?.name ?? sc.name ?? '—'}</TableCell>
-              <TableCell sx={{ fontSize: 12 }}>
-                {sc.isGratuity ? (
-                  <Typography variant="caption" sx={{ px: 0.75, py: 0.2, borderRadius: 0.5, bgcolor: '#e8eaf6', color: '#283593', fontWeight: 600 }}>
-                    gratuity
-                  </Typography>
-                ) : (
-                  <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>—</Typography>
-                )}
-              </TableCell>
-              <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>${sc.totalAmountDollar}</TableCell>
-              <TableCell sx={{ fontSize: 12, textAlign: 'right', color: sc.taxAmount > 0 ? 'warning.dark' : 'text.disabled' }}>
-                {sc.taxAmount > 0 ? `$${sc.taxAmountDollar}` : '—'}
-              </TableCell>
-              <TableCell sx={{ fontSize: 12, textAlign: 'right', fontWeight: 600 }}>
-                ${((sc.appliedAmount + sc.taxAmount) / 100).toFixed(2)}
-              </TableCell>
-            </TableRow>
-            {sc.taxes?.map((t, i) => (
-              <TableRow key={t.taxId ?? i} sx={{ bgcolor: '#fffde7' }}>
-                <TableCell sx={{ ...CELL, pl: 2.5 }}>
-                  <Typography sx={{ fontSize: 11, color: '#b45309' }}>
-                    {'└ '}{t.name}
-                    {taxRateLabel(t) && (
-                      <Typography component="span" sx={{ fontSize: 10, color: 'text.disabled', ml: 0.5 }}>
-                        ({taxRateLabel(t)})
+        {serviceCharges.map((sc) => {
+          const rateLabel = scRateLabel(sc.rate, sc.chargeType, sc.fixedAmount);
+          return (
+            <React.Fragment key={sc.id}>
+              <TableRow sx={{ '&:hover': { bgcolor: 'grey.50' } }}>
+                <TableCell sx={{ fontSize: 12, fontWeight: 500, verticalAlign: 'top', pt: 1 }}>
+                  <Box sx={{ fontWeight: 600, mb: 0.25 }}>{sc.name || '—'}</Box>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                    <Typography variant="caption" sx={{ px: 0.6, py: 0.1, borderRadius: 0.5, bgcolor: '#e3f2fd', color: '#0d47a1', fontWeight: 600, fontSize: 10 }}>
+                      {sc.chargeType}
+                    </Typography>
+                    {rateLabel && (
+                      <Typography variant="caption" sx={{ px: 0.6, py: 0.1, borderRadius: 0.5, bgcolor: '#f3e5f5', color: '#4a148c', fontWeight: 600, fontSize: 10 }}>
+                        {rateLabel}
                       </Typography>
                     )}
-                  </Typography>
+                    {sc.chargeCalculationType && (
+                      <Typography variant="caption" sx={{ px: 0.6, py: 0.1, borderRadius: 0.5, bgcolor: '#f5f5f5', color: '#616161', fontWeight: 600, fontSize: 10 }}>
+                        calc: {sc.chargeCalculationType}
+                      </Typography>
+                    )}
+                    {sc.minCheckAmount != null && sc.minCheckAmount > 0 && (
+                      <Typography variant="caption" sx={{ px: 0.6, py: 0.1, borderRadius: 0.5, bgcolor: '#fff8e1', color: '#e65100', fontWeight: 600, fontSize: 10 }}>
+                        min ${(sc.minCheckAmount / 100).toFixed(2)}
+                      </Typography>
+                    )}
+                  </Box>
                 </TableCell>
-                <TableCell sx={CELL} />
-                <TableCell sx={CELL} />
-                <TableCell sx={{ ...CELL, textAlign: 'right' }}>
-                  <Typography sx={{ fontSize: 11, color: '#b45309' }}>${(t.taxAmount / 100).toFixed(2)}</Typography>
+                <TableCell sx={{ fontSize: 12, verticalAlign: 'top', pt: 1 }}>
+                  {sc.isGratuity ? (
+                    <Typography variant="caption" sx={{ px: 0.75, py: 0.2, borderRadius: 0.5, bgcolor: '#e8eaf6', color: '#283593', fontWeight: 600 }}>
+                      gratuity
+                    </Typography>
+                  ) : (
+                    <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>—</Typography>
+                  )}
                 </TableCell>
-                <TableCell sx={CELL} />
+                <TableCell sx={{ fontSize: 12, textAlign: 'right', verticalAlign: 'top', pt: 1 }}>${sc.totalAmountDollar}</TableCell>
+                <TableCell sx={{ fontSize: 12, textAlign: 'right', verticalAlign: 'top', pt: 1, color: sc.taxAmount > 0 ? 'warning.dark' : 'text.disabled' }}>
+                  {sc.taxAmount > 0 ? `$${sc.taxAmountDollar}` : '—'}
+                </TableCell>
+                <TableCell sx={{ fontSize: 12, textAlign: 'right', verticalAlign: 'top', pt: 1, fontWeight: 600 }}>
+                  ${((sc.appliedAmount + sc.taxAmount) / 100).toFixed(2)}
+                </TableCell>
               </TableRow>
-            ))}
-          </React.Fragment>
-        ))}
+              {sc.taxes?.map((t) => (
+                <TableRow key={t.serviceChargeTaxId} sx={{ bgcolor: '#fffde7' }}>
+                  <TableCell sx={{ ...CELL, pl: 2.5 }}>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 0.5 }}>
+                      <Typography sx={{ fontSize: 11, color: '#b45309', mr: 0.25 }}>└ {t.name}</Typography>
+                      <Typography variant="caption" sx={{ px: 0.5, py: 0.1, borderRadius: 0.5, bgcolor: '#fef9c3', color: '#92400e', fontWeight: 600, fontSize: 10 }}>
+                        {t.type}
+                      </Typography>
+                      {scTaxRateLabel(t) && (
+                        <Typography variant="caption" sx={{ px: 0.5, py: 0.1, borderRadius: 0.5, bgcolor: '#fef9c3', color: '#92400e', fontWeight: 600, fontSize: 10 }}>
+                          {scTaxRateLabel(t)}
+                        </Typography>
+                      )}
+                      {t.rateRoundingOption && (
+                        <Typography variant="caption" sx={{ fontSize: 10, color: 'text.disabled' }}>
+                          {t.rateRoundingOption}
+                        </Typography>
+                      )}
+                      {t.enableTakeoutRate && (
+                        <Typography variant="caption" sx={{ px: 0.5, py: 0.1, borderRadius: 0.5, bgcolor: '#e0f7fa', color: '#006064', fontWeight: 600, fontSize: 10 }}>
+                          takeout: {(t.takeoutRate * 100).toFixed(4).replace(/\.?0+$/, '')}%
+                        </Typography>
+                      )}
+                    </Box>
+                  </TableCell>
+                  <TableCell sx={CELL} />
+                  <TableCell sx={CELL} />
+                  <TableCell sx={{ ...CELL, textAlign: 'right' }}>
+                    <Typography sx={{ fontSize: 11, color: '#b45309' }}>${(t.taxAmount / 100).toFixed(2)}</Typography>
+                  </TableCell>
+                  <TableCell sx={CELL} />
+                </TableRow>
+              ))}
+            </React.Fragment>
+          );
+        })}
       </TableBody>
     </Table>
   );
@@ -328,17 +346,39 @@ function ServiceFeesTable({ serviceFees }: { serviceFees: CheckDetail['serviceFe
     <Table size="small">
       <TableHead>
         <TableRow>
-          <TableCell sx={{ ...SC_HEAD, width: '50%' }}>name</TableCell>
+          <TableCell sx={{ ...SC_HEAD, width: '60%' }}>
+            <HeadWithTip tip="주문 시점 스냅샷 이름. chargeType · rate 정보를 함께 표시합니다.">name / snapshot</HeadWithTip>
+          </TableCell>
           <TableCell sx={{ ...SC_HEAD, textAlign: 'right' }}>amount</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
-        {serviceFees.map((sf) => (
-          <TableRow key={sf.id} sx={{ '&:hover': { bgcolor: 'grey.50' } }}>
-            <TableCell sx={{ fontSize: 12, fontWeight: 500 }}>{sf.name}</TableCell>
-            <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>${sf.appliedAmountDollar}</TableCell>
-          </TableRow>
-        ))}
+        {serviceFees.map((sf) => {
+          const rateLabel = scRateLabel(sf.rate ?? 0, sf.chargeType, sf.fixedAmount);
+          return (
+            <TableRow key={sf.id} sx={{ '&:hover': { bgcolor: 'grey.50' } }}>
+              <TableCell sx={{ fontSize: 12, fontWeight: 500, verticalAlign: 'top', pt: 1 }}>
+                <Box sx={{ fontWeight: 600, mb: 0.25 }}>{sf.name}</Box>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                  <Typography variant="caption" sx={{ px: 0.6, py: 0.1, borderRadius: 0.5, bgcolor: '#e3f2fd', color: '#0d47a1', fontWeight: 600, fontSize: 10 }}>
+                    {sf.chargeType}
+                  </Typography>
+                  {rateLabel && (
+                    <Typography variant="caption" sx={{ px: 0.6, py: 0.1, borderRadius: 0.5, bgcolor: '#f3e5f5', color: '#4a148c', fontWeight: 600, fontSize: 10 }}>
+                      {rateLabel}
+                    </Typography>
+                  )}
+                  {sf.chargeCalculationType && (
+                    <Typography variant="caption" sx={{ px: 0.6, py: 0.1, borderRadius: 0.5, bgcolor: '#f5f5f5', color: '#616161', fontWeight: 600, fontSize: 10 }}>
+                      calc: {sf.chargeCalculationType}
+                    </Typography>
+                  )}
+                </Box>
+              </TableCell>
+              <TableCell sx={{ fontSize: 12, textAlign: 'right', verticalAlign: 'top', pt: 1 }}>${sf.appliedAmountDollar}</TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );
@@ -441,7 +481,7 @@ function SplitChecksTable({ checks, storeId, rootCheck }: { checks: MasterCheckS
               {rootCheck.status}
             </Typography>
           </TableCell>
-          <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{fmt(rootCheck.subtotalDollar)}</TableCell>
+          <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{fmt(rootCheck.subtotalAmountDollar)}</TableCell>
           <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{rootCheck.taxAmount > 0 ? fmt(rootCheck.taxAmountDollar) : '—'}</TableCell>
           <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{rootCheck.serviceChargeAmount > 0 ? fmt(rootCheck.serviceChargeAmountDollar) : '—'}</TableCell>
           <TableCell sx={{ fontSize: 12, textAlign: 'right' }}>{rootCheck.gratuityAmount > 0 ? fmt(rootCheck.gratuityAmountDollar) : '—'}</TableCell>
@@ -781,7 +821,7 @@ export default function CheckDetailPage() {
                 <HelpOutlineIcon sx={{ fontSize: 14, color: 'text.disabled', cursor: 'help', mt: '1px' }} />
               </Tooltip>
             </Box>
-            <Typography sx={{ fontSize: 13 }}>${check.subtotalDollar}</Typography>
+            <Typography sx={{ fontSize: 13 }}>${check.subtotalAmountDollar}</Typography>
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -804,7 +844,17 @@ export default function CheckDetailPage() {
           <AmountRow label="Service Charge" value={check.serviceChargeAmountDollar} />
           <AmountRow label="Gratuity" value={check.gratuityAmountDollar} />
           <AmountRow label="Service Fee" value={check.serviceFeeAmountDollar} />
-          <AmountRow label="Tip" value={check.tipAmountDollar} />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', py: 0.4 }}>
+            <Box>
+              <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Tip</Typography>
+              {check.tipCalculationAmountDollar && (
+                <Typography sx={{ fontSize: 10, color: 'text.disabled' }}>
+                  base ${check.tipCalculationAmountDollar}
+                </Typography>
+              )}
+            </Box>
+            <Typography sx={{ fontSize: 13 }}>${check.tipAmountDollar}</Typography>
+          </Box>
           <Divider sx={{ my: 0.75 }} />
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -852,6 +902,29 @@ export default function CheckDetailPage() {
             </Box>
             <Typography sx={{ fontSize: 13 }}>${check.paidAmountDollar}</Typography>
           </Box>
+          {/* SALE / VOID / REFUND 세부 분리 */}
+          {(check.saleAmount > 0 || check.voidAmount > 0 || check.refundAmount > 0) && (
+            <Box sx={{ pl: 1.5, borderLeft: '2px solid #e0e0e0', ml: 0.5 }}>
+              {check.saleAmount > 0 && (
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.2 }}>
+                  <Typography sx={{ fontSize: 11, color: 'text.disabled' }}>SALE</Typography>
+                  <Typography sx={{ fontSize: 11, color: 'success.dark' }}>+${check.saleAmountDollar}</Typography>
+                </Box>
+              )}
+              {check.voidAmount > 0 && (
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.2 }}>
+                  <Typography sx={{ fontSize: 11, color: 'text.disabled' }}>VOID</Typography>
+                  <Typography sx={{ fontSize: 11, color: 'error.main' }}>−${check.voidAmountDollar}</Typography>
+                </Box>
+              )}
+              {check.refundAmount > 0 && (
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.2 }}>
+                  <Typography sx={{ fontSize: 11, color: 'text.disabled' }}>REFUND</Typography>
+                  <Typography sx={{ fontSize: 11, color: 'warning.dark' }}>−${check.returnAmountDollar}</Typography>
+                </Box>
+              )}
+            </Box>
+          )}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.4 }}>
             <Typography sx={{ fontSize: 13, color: check.balanceAmount > 0 ? 'error.main' : 'text.secondary', fontWeight: check.balanceAmount > 0 ? 600 : 400 }}>Balance due</Typography>
             <Typography sx={{ fontSize: 13, color: check.balanceAmount > 0 ? 'error.main' : 'text.primary', fontWeight: check.balanceAmount > 0 ? 600 : 400 }}>${check.balanceAmountDollar}</Typography>
@@ -873,7 +946,7 @@ export default function CheckDetailPage() {
               {check.serviceCharges.map((sc) => (
                 <Box key={sc.id} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.25 }}>
                   <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>
-                    {sc.isGratuity ? 'Gratuity' : 'Svc Charge'} · {sc.serviceCharge?.name ?? sc.name}
+                    {sc.isGratuity ? 'Gratuity' : 'Svc Charge'} · {sc.name}
                   </Typography>
                   <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>${sc.totalAmountDollar}</Typography>
                 </Box>

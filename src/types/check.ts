@@ -1,18 +1,16 @@
 // ── Check Detail ──────────────────────────────────────────────
 
-export interface CheckItemTaxEntry {
-  taxId: string | null;
-  name: string;
-  rate: number | null;      // 소수 (e.g. 0.0825 = 8.25%). PERCENT 타입 전용
-  fixedAmount: number | null; // cents. FIXED 타입 전용
-  taxAmount: number;        // cents
-}
-
 export interface CheckServiceChargeTaxEntry {
+  serviceChargeTaxId: string;
   taxId: string | null;
+  posTaxId: string | null;
   name: string;
-  rate: number | null;
-  fixedAmount: number | null;
+  type: string;             // TaxTypeEnum: 'PERCENT' | 'FIXED'
+  rate: number | null;      // 소수 (e.g. 0.0825). PERCENT 전용
+  fixedAmount: number | null; // cents. FIXED 전용
+  rateRoundingOption: string | null; // e.g. 'ROUND_HALF_UP'
+  enableTakeoutRate: boolean;
+  takeoutRate: number;      // 소수
   taxAmount: number;        // cents
 }
 
@@ -49,7 +47,6 @@ export interface CheckItem {
   inheritedSubtotalAmount: number;
   inheritedSubtotalAmountDollar: string;
   modifiers: CheckModifier[];
-  checkItemTaxes: CheckItemTaxEntry[];
   paidAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -65,12 +62,15 @@ export interface CheckTax {
 
 export interface CheckServiceCharge {
   id: string;
-  /** API 응답에서 name은 serviceCharge.name 안에 있음 */
-  name?: string;
-  serviceCharge?: { name?: string };
+  name: string;                        // 주문 시점 스냅샷 이름 (top-level)
+  chargeType: string;                  // ServiceChargeTypeEnum: 'PERCENT' | 'FIXED_AMOUNT' | ...
+  chargeCalculationType: string | null; // ServiceChargeCalculationTypeEnum
+  rate: number;                        // 소수 (e.g. 0.18). PERCENT 전용
+  fixedAmount: number | null;          // cents. FIXED_AMOUNT 전용
+  minCheckAmount: number | null;       // cents. 최소 적용 금액
   isGratuity: boolean;
-  appliedAmount: number;       // SC 금액 (cents, 세금 미포함)
-  totalAmountDollar: string;   // toDollar(appliedAmount)
+  appliedAmount: number;               // SC 금액 (cents, 세금 미포함)
+  totalAmountDollar: string;           // toDollar(appliedAmount)
   taxAmount: number;
   taxAmountDollar: string;
   taxes: CheckServiceChargeTaxEntry[];
@@ -78,7 +78,11 @@ export interface CheckServiceCharge {
 
 export interface CheckServiceFee {
   id: string;
-  name: string;
+  name: string;                        // 주문 시점 스냅샷 이름
+  chargeType: string;                  // ServiceChargeTypeEnum
+  chargeCalculationType: string | null; // ServiceChargeCalculationTypeEnum
+  rate: number | null;                 // 소수. PERCENT 전용
+  fixedAmount: number | null;          // cents. FIXED_AMOUNT 전용
   appliedAmount: number;
   appliedAmountDollar: string;
 }
@@ -115,16 +119,10 @@ export interface CheckDetail {
   parentId: string | null;
   status: 'OPEN' | 'PAID' | 'CLOSED';
   orderType: string;
-  paidAmount: number;
-  paidAmountDollar: string;
-  balanceAmount: number;
-  balanceAmountDollar: string;
-  amount: number;
-  amountDollar: string;
-  subtotal: number;
-  subtotalDollar: string;
-  tipAmount: number;
-  tipAmountDollar: string;
+
+  // 금액 합계
+  subtotalAmount: number;
+  subtotalAmountDollar: string;
   taxAmount: number;
   taxAmountDollar: string;
   serviceChargeAmount: number;
@@ -133,8 +131,30 @@ export interface CheckDetail {
   gratuityAmountDollar: string;
   serviceFeeAmount: number;
   serviceFeeAmountDollar: string;
+  tipAmount: number;
+  tipAmountDollar: string;
+  tipCalculationAmountDollar: string;  // Tip % 계산 기준 금액 (dollar)
   totalAmount: number;
   totalAmountDollar: string;
+
+  // 결제 내역 합산
+  paidAmount: number;
+  paidAmountDollar: string;
+  saleAmount: number;
+  saleAmountDollar: string;
+  voidAmount: number;
+  voidAmountDollar: string;
+  refundAmount: number;
+  returnAmountDollar: string;          // API 필드명: returnAmountDollar
+  balanceAmount: number;
+  balanceAmountDollar: string;
+
+  // deprecated — 하위 호환
+  /** @deprecated use subtotalAmount */
+  subtotal: number;
+  /** @deprecated use subtotalAmountDollar */
+  subtotalDollar: string;
+
   checkItems: CheckItem[];
   payments: CheckPayment[];
   taxes: CheckTax[];
