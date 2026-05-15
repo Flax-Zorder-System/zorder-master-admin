@@ -9,7 +9,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import type { CheckOther, OrderItemDetail, OrderModifierDetail, OrderTicketDetail } from '../types/orderTicket';
@@ -64,8 +64,8 @@ function ModifierTableRows({ modifiers, depth = 0 }: { modifiers: OrderModifierD
   return (
     <>
       {modifiers.map((m, i) => (
-        <>
-          <TableRow key={m.id ?? i} sx={{ opacity: 0.75 }}>
+        <Fragment key={m.id ?? i}>
+          <TableRow sx={{ opacity: 0.75 }}>
             <TableCell sx={{ ...CELL, pl: 2 + depth * 2 }}>
               <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>
                 {'└ '}{m.quantity > 1 ? `${m.quantity}× ` : ''}{m.modifierName}
@@ -94,7 +94,7 @@ function ModifierTableRows({ modifiers, depth = 0 }: { modifiers: OrderModifierD
             <TableCell sx={CELL} />
           </TableRow>
           {m.orderModifiers?.length > 0 && <ModifierTableRows modifiers={m.orderModifiers} depth={depth + 1} />}
-        </>
+        </Fragment>
       ))}
     </>
   );
@@ -114,8 +114,8 @@ function OrderItemsTable({ items }: { items: OrderItemDetail[] }) {
       </TableHead>
       <TableBody>
         {items.map((item) => (
-          <>
-            <TableRow key={item.id} sx={{ '&:hover': { bgcolor: 'grey.50' } }}>
+          <Fragment key={item.id}>
+            <TableRow sx={{ '&:hover': { bgcolor: 'grey.50' } }}>
               <TableCell sx={{ ...CELL, fontWeight: 600 }}>{item.itemName}</TableCell>
               <TableCell sx={{ ...CELL, textAlign: 'right', color: 'text.secondary' }}>
                 ${(item.itemPrice / 100).toFixed(2)}
@@ -133,7 +133,7 @@ function OrderItemsTable({ items }: { items: OrderItemDetail[] }) {
             {item.orderModifiers?.length > 0 && (
               <ModifierTableRows modifiers={item.orderModifiers} />
             )}
-          </>
+          </Fragment>
         ))}
       </TableBody>
     </Table>
@@ -301,12 +301,6 @@ export default function OrderTicketDetailPage() {
               <Typography sx={{ fontSize: 13 }}>${detail.checkSubtotalDollar}</Typography>
             </Box>
             {detail.checkOthers.map((o) => <CheckOtherRow key={`${o.kind}-${o.id}`} item={o} />)}
-            {detail.checkTipAmountDollar && (
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.4 }}>
-                <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Tip</Typography>
-                <Typography sx={{ fontSize: 13 }}>${detail.checkTipAmountDollar}</Typography>
-              </Box>
-            )}
             <Divider sx={{ my: 0.75 }} />
             <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.4 }}>
               <Typography sx={{ fontSize: 14, fontWeight: 700 }}>Total</Typography>
@@ -314,6 +308,29 @@ export default function OrderTicketDetailPage() {
                 ${detail.checkTotalAmountDollar ?? (detail.totalAmount / 100).toFixed(2)}
               </Typography>
             </Box>
+            {detail.checkTipAmountDollar && (
+              <>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.4 }}>
+                  <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Tip</Typography>
+                  <Typography sx={{ fontSize: 13 }}>${detail.checkTipAmountDollar}</Typography>
+                </Box>
+                <Divider sx={{ my: 0.75 }} />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.4 }}>
+                  <Typography sx={{ fontSize: 14, fontWeight: 700 }}>Payment Total</Typography>
+                  <Typography sx={{ fontSize: 14, fontWeight: 700 }}>
+                    ${(parseFloat(detail.checkTotalAmountDollar ?? (detail.totalAmount / 100).toFixed(2)) + parseFloat(detail.checkTipAmountDollar)).toFixed(2)}
+                  </Typography>
+                </Box>
+              </>
+            )}
+            {detail.checkRefundedAmountDollar && (
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.4 }}>
+                <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>
+                  {detail.paymentStatus === 'Voided' ? 'Voided' : 'Refunded'}
+                </Typography>
+                <Typography sx={{ fontSize: 13 }}>${detail.checkRefundedAmountDollar}</Typography>
+              </Box>
+            )}
           </Box>
         </>
       )}

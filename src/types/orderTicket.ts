@@ -97,6 +97,7 @@ export interface OrderTicketDetail {
   checkTipAmountDollar: string | null;
   checkTotalAmountDollar: string | null;
   checkOthersAmountDollar: string | null;
+  checkRefundedAmountDollar: string | null;
   receiptRequested: boolean;
   checkOthers: CheckOther[];
   orderItems: OrderItemDetail[];
