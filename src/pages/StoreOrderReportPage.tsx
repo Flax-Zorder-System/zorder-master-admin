@@ -8,12 +8,32 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import type { OrderCountReportItem } from '../types/api';
 import { usePageTitle } from '../hooks/usePageTitle';
+
+// ── 히트맵 색상 (0 → 최댓값 기준 5단계) ──────────────────────
+const HEAT_TIERS = [
+  { maxRatio: 0,    bg: '#f5f5f5', fg: '#bdbdbd' }, // 0건
+  { maxRatio: 0.25, bg: '#e8f5e9', fg: '#2e7d32' }, // 1 ~ 25%
+  { maxRatio: 0.5,  bg: '#a5d6a7', fg: '#1b5e20' }, // 25 ~ 50%
+  { maxRatio: 0.75, bg: '#66bb6a', fg: '#fff'     }, // 50 ~ 75%
+  { maxRatio: 0.9,  bg: '#388e3c', fg: '#fff'     }, // 75 ~ 90%
+  { maxRatio: 1,    bg: '#1b5e20', fg: '#fff'     }, // 90 ~ 100%
+] as const;
+
+function heatColor(count: number, max: number): { bg: string; fg: string } {
+  if (count === 0 || max === 0) return { bg: '#f5f5f5', fg: '#bdbdbd' };
+  const ratio = count / max;
+  for (const tier of HEAT_TIERS) {
+    if (ratio <= tier.maxRatio) return { bg: tier.bg, fg: tier.fg };
+  }
+  return { bg: '#1b5e20', fg: '#fff' };
+}
 
 export default function StoreOrderReportPage() {
   usePageTitle('Order Count Report');
@@ -31,9 +51,22 @@ export default function StoreOrderReportPage() {
 
   const dates = data[0]?.reports.map((r) => r.date) ?? [];
 
+  // 전체 최댓값 (히트맵 기준)
+  const maxCount = data.length > 0
+    ? Math.max(...data.flatMap((s) => s.reports.map((r) => r.orderCount)))
+    : 0;
+
+  // 7일 합계 기준 내림차순 정렬
+  const sorted = [...data].sort((a, b) => {
+    const sumA = a.reports.reduce((s, r) => s + r.orderCount, 0);
+    const sumB = b.reports.reduce((s, r) => s + r.orderCount, 0);
+    return sumB - sumA;
+  });
+
   return (
     <Box sx={{ p: 2, maxWidth: 1800, margin: '0 auto' }}>
-      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 2 }}>
+      {/* 헤더 */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
           Order Count Report
         </Typography>
@@ -41,6 +74,39 @@ export default function StoreOrderReportPage() {
           <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>
             최근 7일 · {data.length} 매장
           </Typography>
+        )}
+
+        {/* 범례 */}
+        {!loading && maxCount > 0 && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 'auto' }}>
+            <Typography sx={{ fontSize: 11, color: 'text.disabled', mr: 0.5 }}>주문량</Typography>
+            {[
+              { label: '0',        bg: '#f5f5f5', fg: '#bdbdbd' },
+              { label: '낮음',     bg: '#e8f5e9', fg: '#2e7d32' },
+              { label: '',         bg: '#a5d6a7', fg: '#1b5e20' },
+              { label: '보통',     bg: '#66bb6a', fg: '#fff'    },
+              { label: '',         bg: '#388e3c', fg: '#fff'    },
+              { label: '높음',     bg: '#1b5e20', fg: '#fff'    },
+            ].map((t, i) => (
+              <Box
+                key={i}
+                sx={{
+                  width: 28, height: 18, borderRadius: 0.5,
+                  bgcolor: t.bg,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                {t.label && (
+                  <Typography sx={{ fontSize: 9, color: t.fg, fontWeight: 700, lineHeight: 1 }}>
+                    {t.label}
+                  </Typography>
+                )}
+              </Box>
+            ))}
+            <Typography sx={{ fontSize: 11, color: 'text.disabled', ml: 0.5 }}>
+              (max {maxCount})
+            </Typography>
+          </Box>
         )}
       </Box>
 
@@ -53,52 +119,92 @@ export default function StoreOrderReportPage() {
       {error && <Typography color="error">{error}</Typography>}
 
       {!loading && !error && (
-        <TableContainer component={Paper}>
-          <Table size="small" sx={{ '& .MuiTableHead-root': { position: 'sticky', top: 0, bgcolor: 'grey.50' } }}>
+        <TableContainer component={Paper} sx={{ borderRadius: 1 }}>
+          <Table size="small" sx={{ tableLayout: 'fixed' }}>
             <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', minWidth: 160 }}>
-                  store name
+              <TableRow sx={{ bgcolor: '#fafafa' }}>
+                <TableCell sx={{ fontWeight: 700, fontSize: 12, width: 180, position: 'sticky', left: 0, bgcolor: '#fafafa', zIndex: 1, borderRight: '1px solid #e0e0e0' }}>
+                  store
                 </TableCell>
                 {dates.map((date) => (
                   <TableCell
                     key={date}
                     align="center"
-                    sx={{ fontWeight: 700, fontSize: 12, bgcolor: 'grey.50', minWidth: 80 }}
+                    sx={{ fontWeight: 700, fontSize: 11, width: 80, color: 'text.secondary' }}
                   >
-                    {date}
+                    {date.slice(5)} {/* MM-DD */}
                   </TableCell>
                 ))}
+                <TableCell align="center" sx={{ fontWeight: 700, fontSize: 11, width: 64, bgcolor: '#f0f4ff', color: '#1a237e' }}>
+                  7일 합계
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {data.length === 0 ? (
+              {sorted.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={dates.length + 1}
+                    colSpan={dates.length + 2}
                     sx={{ textAlign: 'center', py: 4, color: 'text.secondary', fontSize: 13 }}
                   >
                     No data.
                   </TableCell>
                 </TableRow>
               ) : (
-                data.map((store) => (
-                  <TableRow key={store.storeName} hover>
-                    <TableCell sx={{ fontSize: 12, fontWeight: 500 }}>{store.storeName}</TableCell>
-                    {store.reports.map((r) => (
+                sorted.map((store, rowIdx) => {
+                  const total = store.reports.reduce((s, r) => s + r.orderCount, 0);
+                  const totalColor = heatColor(total, maxCount * dates.length);
+                  return (
+                    <TableRow key={store.storeName} sx={{ '&:hover td': { filter: 'brightness(0.93)' } }}>
                       <TableCell
-                        key={r.date}
-                        align="center"
                         sx={{
-                          fontSize: 12,
-                          color: r.orderCount === 0 ? 'text.disabled' : 'text.primary',
+                          fontSize: 12, fontWeight: 500,
+                          position: 'sticky', left: 0,
+                          bgcolor: rowIdx % 2 === 0 ? '#fff' : '#fafafa',
+                          zIndex: 1,
+                          borderRight: '1px solid #e0e0e0',
+                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                         }}
                       >
-                        {r.orderCount === 0 ? '-' : r.orderCount}
+                        {store.storeName}
                       </TableCell>
-                    ))}
-                  </TableRow>
-                ))
+                      {store.reports.map((r) => {
+                        const { bg, fg } = heatColor(r.orderCount, maxCount);
+                        return (
+                          <Tooltip
+                            key={r.date}
+                            title={`${store.storeName} · ${r.date}: ${r.orderCount}건`}
+                            placement="top"
+                            arrow
+                          >
+                            <TableCell
+                              align="center"
+                              sx={{
+                                fontSize: 12, fontWeight: r.orderCount > 0 ? 600 : 400,
+                                bgcolor: bg, color: fg,
+                                border: '1px solid rgba(255,255,255,0.6)',
+                                p: '6px 4px',
+                                cursor: 'default',
+                              }}
+                            >
+                              {r.orderCount === 0 ? '·' : r.orderCount}
+                            </TableCell>
+                          </Tooltip>
+                        );
+                      })}
+                      <TableCell
+                        align="center"
+                        sx={{
+                          fontSize: 12, fontWeight: 700,
+                          bgcolor: totalColor.bg, color: totalColor.fg,
+                          border: '1px solid rgba(255,255,255,0.6)',
+                        }}
+                      >
+                        {total === 0 ? '·' : total}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
