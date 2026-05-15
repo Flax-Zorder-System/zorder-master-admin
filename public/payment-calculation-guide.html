@@ -671,42 +671,47 @@
 
   <p class="prose">Check에는 결제 상태를 파악하기 위한 집계 필드가 있습니다. 각 필드가 무엇을 의미하는지, 어떻게 계산되는지 이해하는 것이 중요합니다.</p>
 
+  <div class="callout" style="background:#f0fdf4;border-color:#16a34a;color:#15803d;">
+    <span>💡</span>
+    <div>각 집계 필드는 결제 레코드(payment)의 <strong>amount + taxAmount + tipAmount</strong>를 status별로 합산합니다.</div>
+  </div>
+
   <div class="example" style="margin-bottom:14px;background:#f0fdf4;border-color:#16a34a;">
     <div class="example-title" style="color:#16a34a;">saleAmount — SALE 결제 총합</div>
     <div class="eq" style="font-size:12px;color:var(--text-sub);padding-left:8px;">
-      <span class="eq-label">= Σ payment.amount + Σ payment.taxAmount + Σ payment.tipAmount &nbsp;<span style="color:var(--text-muted);">(SALE 결제 레코드 합산)</span></span>
+      <span class="eq-label" style="font-family:monospace;">payments.filter(p =&gt; p.status === 'SALE')</span>
+    </div>
+    <div class="eq" style="font-size:12px;color:var(--text-sub);padding-left:8px;">
+      <span class="eq-label" style="font-family:monospace;">&nbsp;&nbsp;.reduce((sum, p) =&gt; sum + p.amount + p.taxAmount + p.tipAmount, 0)</span>
     </div>
     <div class="eq" style="font-size:12px;color:var(--text-sub);padding-left:8px;padding-top:4px;">
-      <span class="eq-label">· 승인(SALE) 처리된 모든 결제 금액의 합계입니다. 취소/환불 전 gross 금액입니다.</span>
+      <span class="eq-label">· 승인(SALE) 결제 레코드의 (amount + tax + tip) 전체 합산입니다.</span>
     </div>
   </div>
 
   <div class="example" style="margin-bottom:14px;background:#fef2f2;border-color:#dc2626;">
     <div class="example-title" style="color:#dc2626;">voidAmount / refundAmount — 취소·환불 총합</div>
     <div class="eq" style="font-size:12px;color:var(--text-sub);padding-left:8px;">
-      <span class="eq-label">voidAmount &nbsp;= Σ VOID 결제 레코드의 amount 합산</span>
+      <span class="eq-label" style="font-family:monospace;">voidAmount &nbsp;= payments.filter(p =&gt; p.status === 'VOID')</span>
     </div>
     <div class="eq" style="font-size:12px;color:var(--text-sub);padding-left:8px;">
-      <span class="eq-label">refundAmount = Σ REFUND 결제 레코드의 amount 합산</span>
+      <span class="eq-label" style="font-family:monospace;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.reduce((sum, p) =&gt; sum + p.amount + p.taxAmount + p.tipAmount, 0)</span>
     </div>
     <div class="eq" style="font-size:12px;color:var(--text-sub);padding-left:8px;padding-top:4px;">
-      <span class="eq-label">· 고객에게 돌아간 금액입니다. paidAmount 계산에서 차감됩니다.</span>
+      <span class="eq-label" style="font-family:monospace;">refundAmount = payments.filter(p =&gt; p.status === 'REFUND') ... (동일)</span>
+    </div>
+    <div class="eq" style="font-size:12px;color:var(--text-sub);padding-left:8px;padding-top:4px;">
+      <span class="eq-label">· VOID/REFUND도 (amount + taxAmount + tipAmount) 합산입니다. paidAmount 계산에서 차감됩니다.</span>
     </div>
   </div>
 
   <div class="example" style="margin-bottom:14px;background:#eff6ff;border-color:#2563eb;">
     <div class="example-title" style="color:#2563eb;">paidAmount — 실 납부된 순액</div>
     <div class="eq" style="font-size:13px;padding:6px 0 2px;">
-      <span class="eq-label" style="font-weight:700;">paidAmount</span>
-    </div>
-    <div class="eq" style="font-size:12px;color:var(--text-sub);padding-left:8px;">
-      <span class="eq-label">= Σ payment.amount + Σ payment.taxAmount + Σ payment.tipAmount</span>
-    </div>
-    <div class="eq" style="font-size:12px;color:var(--text-sub);padding-left:8px;">
-      <span class="eq-label">= saleAmount − voidAmount − refundAmount</span>
+      <span class="eq-label" style="font-weight:700;font-family:monospace;">paidAmount = saleAmount − voidAmount − refundAmount</span>
     </div>
     <div class="eq" style="font-size:12px;color:var(--text-sub);padding-left:8px;padding-top:4px;">
-      <span class="eq-label">· SALE에서 VOID와 REFUND를 차감한 실제 납부 순액입니다.</span>
+      <span class="eq-label">· SALE 합산에서 VOID와 REFUND를 차감한 실제 납부 순액입니다.</span>
     </div>
   </div>
 

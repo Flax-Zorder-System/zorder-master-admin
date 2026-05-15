@@ -844,17 +844,7 @@ export default function CheckDetailPage() {
           <AmountRow label="Service Charge" value={check.serviceChargeAmountDollar} />
           <AmountRow label="Gratuity" value={check.gratuityAmountDollar} />
           <AmountRow label="Service Fee" value={check.serviceFeeAmountDollar} />
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', py: 0.4 }}>
-            <Box>
-              <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Tip</Typography>
-              {check.tipCalculationAmountDollar && (
-                <Typography sx={{ fontSize: 10, color: 'text.disabled' }}>
-                  base ${check.tipCalculationAmountDollar}
-                </Typography>
-              )}
-            </Box>
-            <Typography sx={{ fontSize: 13 }}>${check.tipAmountDollar}</Typography>
-          </Box>
+          
           <Divider sx={{ my: 0.75 }} />
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -868,7 +858,7 @@ export default function CheckDetailPage() {
                     <Box>= subtotal + tax + SC + fee + gratuity − discount</Box>
                     <Box>· 팁(tip)은 포함되지 않습니다.</Box>
                     <Box sx={{ mt: 0.5, borderTop: '1px solid rgba(255,255,255,0.2)', pt: 0.5 }}>
-                      <Box sx={{ fontWeight: 700, mb: 0.25 }}>실제 청구 총액</Box>
+                      <Box sx={{ fontWeight: 700, mb: 0.25 }}>실제 결제 금액</Box>
                       <Box>= totalAmount + tipAmount</Box>
                     </Box>
                     <Box sx={{ mt: 0.5, borderTop: '1px solid rgba(255,255,255,0.2)', pt: 0.5 }}>
@@ -885,6 +875,18 @@ export default function CheckDetailPage() {
             <Typography sx={{ fontSize: 14, fontWeight: 700 }}>${check.totalAmountDollar}</Typography>
           </Box>
 
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', py: 0.4 }}>
+            <Box>
+              <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Tip</Typography>
+              {check.tipCalculationAmountDollar && (
+                <Typography sx={{ fontSize: 10, color: 'text.disabled' }}>
+                  base ${check.tipCalculationAmountDollar}
+                </Typography>
+              )}
+            </Box>
+            <Typography sx={{ fontSize: 13 }}>${check.tipAmountDollar}</Typography>
+          </Box>
+          
           {/* SALE / VOID / REFUND — 항상 표시 */}
           <Divider sx={{ my: 0.75 }} />
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.3 }}>
@@ -892,8 +894,9 @@ export default function CheckDetailPage() {
               <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>SALE</Typography>
               <Tooltip arrow placement="right" title={
                 <Box sx={{ fontSize: 12, lineHeight: 1.8, p: 0.5 }}>
-                  <Box>SALE 결제 합산: Σ payment.amount + Σ payment.taxAmount + Σ payment.tipAmount</Box>
-                  <Box>· 승인된 결제 금액의 총합입니다.</Box>
+                  <Box sx={{ fontWeight: 700, mb: 0.25 }}>saleAmount</Box>
+                  <Box>= Σ (payment.amount + payment.taxAmount + payment.tipAmount)</Box>
+                  <Box sx={{ mt: 0.25, color: 'rgba(255,255,255,0.7)' }}>status = &apos;SALE&apos; 인 결제 레코드 합산</Box>
                 </Box>
               }>
                 <HelpOutlineIcon sx={{ fontSize: 12, color: 'text.disabled', cursor: 'help' }} />
@@ -905,7 +908,18 @@ export default function CheckDetailPage() {
           </Box>
           {check.voidAmount > 0 && (
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.3 }}>
-              <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>VOID</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>VOID</Typography>
+                <Tooltip arrow placement="right" title={
+                  <Box sx={{ fontSize: 12, lineHeight: 1.8, p: 0.5 }}>
+                    <Box sx={{ fontWeight: 700, mb: 0.25 }}>voidAmount</Box>
+                    <Box>= Σ (payment.amount + payment.taxAmount + payment.tipAmount)</Box>
+                    <Box sx={{ mt: 0.25, color: 'rgba(255,255,255,0.7)' }}>status = &apos;VOID&apos; 인 결제 레코드 합산</Box>
+                  </Box>
+                }>
+                  <HelpOutlineIcon sx={{ fontSize: 12, color: 'text.disabled', cursor: 'help' }} />
+                </Tooltip>
+              </Box>
               <Typography sx={{ fontSize: 12, color: 'error.main', fontWeight: 500 }}>
                 −${check.voidAmountDollar}
               </Typography>
@@ -913,7 +927,18 @@ export default function CheckDetailPage() {
           )}
           {check.refundAmount > 0 && (
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.3 }}>
-              <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>REFUND</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>REFUND</Typography>
+                <Tooltip arrow placement="right" title={
+                  <Box sx={{ fontSize: 12, lineHeight: 1.8, p: 0.5 }}>
+                    <Box sx={{ fontWeight: 700, mb: 0.25 }}>refundAmount</Box>
+                    <Box>= Σ (payment.amount + payment.taxAmount + payment.tipAmount)</Box>
+                    <Box sx={{ mt: 0.25, color: 'rgba(255,255,255,0.7)' }}>status = &apos;REFUND&apos; 인 결제 레코드 합산</Box>
+                  </Box>
+                }>
+                  <HelpOutlineIcon sx={{ fontSize: 12, color: 'text.disabled', cursor: 'help' }} />
+                </Tooltip>
+              </Box>
               <Typography sx={{ fontSize: 12, color: 'warning.dark', fontWeight: 500 }}>
                 −${check.returnAmountDollar}
               </Typography>
@@ -929,10 +954,11 @@ export default function CheckDetailPage() {
                 placement="right"
                 title={
                   <Box sx={{ fontSize: 12, lineHeight: 1.9, p: 0.5 }}>
-                    <Box sx={{ fontWeight: 700, mb: 0.25 }}>paidAmount — 실 납부된 순액</Box>
-                    <Box>= Σ payment.amount + Σ payment.taxAmount + Σ payment.tipAmount</Box>
+                    <Box sx={{ fontWeight: 700, mb: 0.25 }}>paidAmount — 실 납부 순액</Box>
+                    <Box>= saleAmount − voidAmount − refundAmount</Box>
                     <Box sx={{ mt: 0.5, borderTop: '1px solid rgba(255,255,255,0.2)', pt: 0.5 }}>
-                      <Box>= saleAmount − voidAmount − refundAmount</Box>
+                      <Box>전개: Σ (payment.amount + payment.taxAmount + payment.tipAmount)</Box>
+                      <Box sx={{ color: 'rgba(255,255,255,0.7)' }}>SALE 합산 − VOID 합산 − REFUND 합산</Box>
                     </Box>
                   </Box>
                 }
@@ -944,13 +970,15 @@ export default function CheckDetailPage() {
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Typography sx={{ fontSize: 13, color: check.balanceAmount > 0 ? 'error.main' : 'text.secondary', fontWeight: check.balanceAmount > 0 ? 600 : 400 }}>Balance due</Typography>
+              <Typography sx={{ fontSize: 13, color: check.balanceAmount > 0 ? 'error.main' : 'text.secondary', fontWeight: check.balanceAmount > 0 ? 600 : 400 }}>
+                Balance due
+              </Typography>
               <Tooltip
                 arrow
                 placement="right"
                 title={
                   <Box sx={{ fontSize: 12, lineHeight: 1.9, p: 0.5 }}>
-                    <Box sx={{ fontWeight: 700, mb: 0.25 }}>Balance due — 미결제 잔액</Box>
+                    <Box sx={{ fontWeight: 700, mb: 0.25 }}>balanceAmount — 미결제 잔액</Box>
                     <Box>= totalAmount + tipAmount − paidAmount</Box>
                     <Box sx={{ mt: 0.5, borderTop: '1px solid rgba(255,255,255,0.2)', pt: 0.5 }}>
                       <Box>전개: = totalAmount + tipAmount</Box>
@@ -963,7 +991,9 @@ export default function CheckDetailPage() {
                 <HelpOutlineIcon sx={{ fontSize: 14, color: 'text.disabled', cursor: 'help', mt: '1px' }} />
               </Tooltip>
             </Box>
-            <Typography sx={{ fontSize: 13, color: check.balanceAmount > 0 ? 'error.main' : 'text.primary', fontWeight: check.balanceAmount > 0 ? 600 : 400 }}>${check.balanceAmountDollar}</Typography>
+            <Typography sx={{ fontSize: 13, color: check.balanceAmount > 0 ? 'error.main' : 'text.primary', fontWeight: check.balanceAmount > 0 ? 600 : 400 }}>
+              ${check.balanceAmountDollar}
+            </Typography>
           </Box>
 
           {/* 세부 내역 */}
